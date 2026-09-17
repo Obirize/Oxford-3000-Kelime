@@ -1,0 +1,730 @@
+{
+  "_comment": "Elle gozden gecirilmis duzeltmeler. build_dataset.py bunlari otomatik konsensus sonucunun UZERINE yazar. Listenin ilk elemani ana anlamdir (kartta dogru cevap olarak gosterilir), tamami KATI modda dogru sayilir.",
+  "a, an": [
+    "bir"
+  ],
+  "ah": [
+    "ah",
+    "of"
+  ],
+  "album": [
+    "albüm",
+    "plak"
+  ],
+  "any more": [
+    "artık",
+    "daha fazla"
+  ],
+  "app": [
+    "uygulama"
+  ],
+  "based": [
+    "dayalı",
+    "merkezli",
+    "temelli"
+  ],
+  "being": [
+    "varlık",
+    "canlı",
+    "olma"
+  ],
+  "blog": [
+    "blog",
+    "günlük"
+  ],
+  "can": [
+    "-ebilmek",
+    "-abilmek",
+    "yapabilmek",
+    "konserve kutusu",
+    "teneke kutu",
+    "kutu"
+  ],
+  "cartoon": [
+    "çizgi film",
+    "karikatür"
+  ],
+  "cite": [
+    "alıntı yapmak",
+    "atıfta bulunmak",
+    "anmak"
+  ],
+  "clause": [
+    "cümlecik",
+    "madde",
+    "fıkra"
+  ],
+  "coach": [
+    "antrenör",
+    "koç",
+    "otobüs",
+    "çalıştırmak"
+  ],
+  "content": [
+    "içerik",
+    "memnun",
+    "hoşnut"
+  ],
+  "costume": [
+    "kostüm",
+    "kılık",
+    "kıyafet"
+  ],
+  "could": [
+    "-ebilirdi",
+    "-abilirdi",
+    "yapabilirdi",
+    "-ebilir"
+  ],
+  "creation": [
+    "yaratma",
+    "yaratılış",
+    "eser"
+  ],
+  "critic": [
+    "eleştirmen"
+  ],
+  "decent": [
+    "düzgün",
+    "iyi",
+    "edepli",
+    "saygın"
+  ],
+  "documentary": [
+    "belgesel"
+  ],
+  "eastern": [
+    "doğu",
+    "doğudaki",
+    "doğuya ait"
+  ],
+  "either": [
+    "ya da",
+    "herhangi biri",
+    "ikisinden biri",
+    "ya"
+  ],
+  "episode": [
+    "bölüm",
+    "olay"
+  ],
+  "expedition": [
+    "keşif gezisi",
+    "sefer"
+  ],
+  "folding": [
+    "katlanabilir",
+    "katlama"
+  ],
+  "fortunately": [
+    "neyse ki",
+    "şükür ki",
+    "çok şükür"
+  ],
+  "funding": [
+    "finansman",
+    "fon",
+    "kaynak sağlama"
+  ],
+  "grandparent": [
+    "büyükanne",
+    "büyükbaba",
+    "dede",
+    "nine"
+  ],
+  "guitar": [
+    "gitar"
+  ],
+  "guy": [
+    "adam",
+    "herif",
+    "eleman"
+  ],
+  "have to": [
+    "zorunda olmak",
+    "mecbur olmak",
+    "zorunda"
+  ],
+  "he": [
+    "o"
+  ],
+  "here": [
+    "burada",
+    "buraya",
+    "işte"
+  ],
+  "historic": [
+    "tarihi",
+    "tarihsel",
+    "tarihe geçen"
+  ],
+  "illustrate": [
+    "örneklerle açıklamak",
+    "resimlemek",
+    "göstermek"
+  ],
+  "illustration": [
+    "çizim",
+    "örnek",
+    "illüstrasyon",
+    "resim"
+  ],
+  "impose": [
+    "dayatmak",
+    "empoze etmek",
+    "koymak"
+  ],
+  "insight": [
+    "içgörü",
+    "kavrayış",
+    "anlayış"
+  ],
+  "its": [
+    "onun"
+  ],
+  "journal": [
+    "dergi",
+    "günlük",
+    "seyir defteri"
+  ],
+  "lay": [
+    "yatırmak",
+    "sermek",
+    "koymak",
+    "yaymak"
+  ],
+  "like": [
+    "sevmek",
+    "beğenmek",
+    "gibi",
+    "benzer"
+  ],
+  "locate": [
+    "yerini bulmak",
+    "konumlandırmak",
+    "yerleştirmek"
+  ],
+  "might": [
+    "-ebilir",
+    "-abilir",
+    "belki",
+    "olabilir"
+  ],
+  "modify": [
+    "değiştirmek",
+    "değişiklik yapmak",
+    "tadil etmek"
+  ],
+  "must": [
+    "-meli",
+    "-malı",
+    "zorunda",
+    "gerekmek",
+    "şart"
+  ],
+  "narrative": [
+    "anlatı",
+    "öykü",
+    "hikaye"
+  ],
+  "nowhere": [
+    "hiçbir yerde",
+    "hiçbir yere"
+  ],
+  "of": [
+    "-in",
+    "-nin",
+    "-den"
+  ],
+  "oh": [
+    "oh",
+    "ah",
+    "aman"
+  ],
+  "OK": [
+    "tamam",
+    "peki",
+    "iyi"
+  ],
+  "ought": [
+    "-meli",
+    "-malı",
+    "gerekir",
+    "lazım"
+  ],
+  "pace": [
+    "tempo",
+    "hız",
+    "adım"
+  ],
+  "paragraph": [
+    "paragraf",
+    "fıkra"
+  ],
+  "penny": [
+    "kuruş",
+    "peni",
+    "metelik"
+  ],
+  "pitch": [
+    "saha",
+    "ses perdesi",
+    "atmak"
+  ],
+  "pose": [
+    "poz",
+    "poz vermek",
+    "teşkil etmek"
+  ],
+  "practise": [
+    "alıştırma yapmak",
+    "pratik yapmak",
+    "uygulamak",
+    "çalışmak"
+  ],
+  "prayer": [
+    "dua",
+    "namaz"
+  ],
+  "predict": [
+    "tahmin etmek",
+    "öngörmek"
+  ],
+  "prime": [
+    "başlıca",
+    "en önemli",
+    "birincil"
+  ],
+  "pronounce": [
+    "telaffuz etmek",
+    "söylemek"
+  ],
+  "properly": [
+    "düzgünce",
+    "gerektiği gibi",
+    "doğru şekilde"
+  ],
+  "psychology": [
+    "psikoloji",
+    "ruh bilimi"
+  ],
+  "pub": [
+    "bar",
+    "meyhane",
+    "birahane"
+  ],
+  "queue": [
+    "sıra",
+    "kuyruk",
+    "sıraya girmek"
+  ],
+  "regard": [
+    "saymak",
+    "görmek",
+    "değerlendirmek",
+    "saygı"
+  ],
+  "revise": [
+    "gözden geçirmek",
+    "tekrar etmek",
+    "düzeltmek"
+  ],
+  "robot": [
+    "robot"
+  ],
+  "rubber": [
+    "lastik",
+    "kauçuk",
+    "silgi"
+  ],
+  "secondly": [
+    "ikinci olarak",
+    "ikincisi"
+  ],
+  "setting": [
+    "ortam",
+    "ayar",
+    "mekan"
+  ],
+  "shall": [
+    "-ecek",
+    "-acak",
+    "-meli",
+    "-alım",
+    "-elim"
+  ],
+  "she": [
+    "o"
+  ],
+  "should": [
+    "-meli",
+    "-malı",
+    "gerek",
+    "gerekmek",
+    "-se iyi olur"
+  ],
+  "since": [
+    "-den beri",
+    "çünkü",
+    "-dığından beri"
+  ],
+  "site": [
+    "yer",
+    "alan",
+    "site",
+    "mevki"
+  ],
+  "smartphone": [
+    "akıllı telefon"
+  ],
+  "solar": [
+    "güneş",
+    "güneşe ait",
+    "güneş enerjisi"
+  ],
+  "sponsor": [
+    "sponsor olmak",
+    "desteklemek",
+    "sponsor"
+  ],
+  "surprised": [
+    "şaşırmış",
+    "şaşkın",
+    "hayret etmiş"
+  ],
+  "teenage": [
+    "genç",
+    "ergen",
+    "gençlere ait"
+  ],
+  "teenager": [
+    "ergen",
+    "genç",
+    "delikanlı"
+  ],
+  "than": [
+    "-den",
+    "daha",
+    "-e göre"
+  ],
+  "the": [
+    "belirli tanımlık",
+    "belirli"
+  ],
+  "towards": [
+    "doğru",
+    "-e karşı",
+    "yönünde"
+  ],
+  "trainer": [
+    "antrenör",
+    "eğitmen",
+    "eğitici"
+  ],
+  "used to": [
+    "alışık olmak",
+    "eskiden yapardı",
+    "alışkın"
+  ],
+  "venue": [
+    "mekan",
+    "etkinlik yeri",
+    "toplantı yeri"
+  ],
+  "virtual": [
+    "sanal",
+    "neredeyse"
+  ],
+  "western": [
+    "batı",
+    "batılı",
+    "batıya ait"
+  ],
+  "wind": [
+    "rüzgar",
+    "yel",
+    "sarmak",
+    "kurmak"
+  ],
+  "worldwide": [
+    "dünya çapında",
+    "dünya genelinde"
+  ],
+  "would": [
+    "-ecekti",
+    "-acaktı",
+    "-erdi",
+    "-ardı",
+    "olurdu",
+    "yapardı"
+  ],
+  "wow": [
+    "vay be",
+    "vay canına",
+    "vay"
+  ],
+  "your": [
+    "senin",
+    "sizin"
+  ],
+  "hey": [
+    "hey",
+    "baksana"
+  ],
+  "bank": [
+    "banka",
+    "kıyı",
+    "nehir kıyısı",
+    "set"
+  ],
+  "bear": [
+    "ayı",
+    "katlanmak",
+    "dayanmak",
+    "taşımak"
+  ],
+  "close": [
+    "kapatmak",
+    "kapamak",
+    "yakın",
+    "yakında"
+  ],
+  "kind": [
+    "tür",
+    "çeşit",
+    "cins",
+    "nazik",
+    "iyi kalpli",
+    "kibar"
+  ],
+  "last": [
+    "son",
+    "sonuncu",
+    "sürmek",
+    "devam etmek",
+    "geçen"
+  ],
+  "lie": [
+    "yatmak",
+    "uzanmak",
+    "yalan söylemek",
+    "yalan"
+  ],
+  "live": [
+    "yaşamak",
+    "oturmak",
+    "canlı",
+    "yaşayan"
+  ],
+  "may": [
+    "mayıs",
+    "-ebilir",
+    "-abilir",
+    "olabilir",
+    "izin"
+  ],
+  "mine": [
+    "benimki",
+    "benim",
+    "maden",
+    "mayın"
+  ],
+  "race": [
+    "yarış",
+    "ırk",
+    "yarışmak",
+    "koşu"
+  ],
+  "rest": [
+    "dinlenmek",
+    "dinlenme",
+    "kalan",
+    "geri kalan"
+  ],
+  "ring": [
+    "yüzük",
+    "halka",
+    "çalmak",
+    "zil çalmak",
+    "ring"
+  ],
+  "rock": [
+    "kaya",
+    "taş",
+    "sallamak",
+    "rock",
+    "rock müziği"
+  ],
+  "set": [
+    "kurmak",
+    "ayarlamak",
+    "koymak",
+    "takım",
+    "set"
+  ],
+  "stick": [
+    "çubuk",
+    "sopa",
+    "yapıştırmak",
+    "saplamak",
+    "batırmak"
+  ],
+  "tear": [
+    "yırtmak",
+    "gözyaşı",
+    "yırtılmak",
+    "yaş"
+  ],
+  "used": [
+    "kullanılmış",
+    "alışık",
+    "eski",
+    "ikinci el"
+  ],
+  "it": [
+    "o",
+    "onu",
+    "bu"
+  ],
+  "him": [
+    "onu",
+    "ona",
+    "o"
+  ],
+  "her": [
+    "onun",
+    "ona",
+    "onu",
+    "o"
+  ],
+  "them": [
+    "onları",
+    "onlar",
+    "onlara"
+  ],
+  "us": [
+    "bizi",
+    "bize",
+    "biz"
+  ],
+  "me": [
+    "beni",
+    "bana",
+    "ben"
+  ],
+  "they": [
+    "onlar"
+  ],
+  "we": [
+    "biz"
+  ],
+  "his": [
+    "onun"
+  ],
+  "their": [
+    "onların"
+  ],
+  "our": [
+    "bizim"
+  ],
+  "myself": [
+    "kendim",
+    "kendimi"
+  ],
+  "yourself": [
+    "kendin",
+    "kendini"
+  ],
+  "himself": [
+    "kendisi",
+    "kendi",
+    "kendini"
+  ],
+  "herself": [
+    "kendisi",
+    "kendi",
+    "kendini"
+  ],
+  "itself": [
+    "kendisi",
+    "kendi",
+    "kendini"
+  ],
+  "ourselves": [
+    "kendimiz",
+    "kendimizi"
+  ],
+  "themselves": [
+    "kendileri",
+    "kendilerini"
+  ],
+  "both": [
+    "her ikisi de",
+    "her ikisi",
+    "ikisi de",
+    "ikisi",
+    "her iki"
+  ],
+  "each": [
+    "her biri",
+    "her bir",
+    "her"
+  ],
+  "neither": [
+    "hiçbiri",
+    "ikisi de değil",
+    "ne biri ne öteki"
+  ],
+  "all": [
+    "hepsi",
+    "tüm",
+    "bütün",
+    "her şey",
+    "tamamı"
+  ],
+  "none": [
+    "hiçbiri",
+    "hiç",
+    "yok"
+  ],
+  "feel": [
+    "hissetmek",
+    "his",
+    "duygu",
+    "hissetme"
+  ],
+  "half": [
+    "yarım",
+    "yarı",
+    "yarısı",
+    "1/2",
+    "buçuk"
+  ],
+  "see": [
+    "görmek",
+    "anlamak",
+    "bakmak"
+  ],
+  "twenty": [
+    "yirmi",
+    "20"
+  ],
+  "college": [
+    "üniversite",
+    "kolej",
+    "yüksekokul"
+  ],
+  "feeling": [
+    "duygu",
+    "his",
+    "hissetme"
+  ],
+  "will": [
+    "-ecek",
+    "-acak",
+    "gelecek zaman",
+    "irade",
+    "vasiyet",
+    "niyet"
+  ]
+}

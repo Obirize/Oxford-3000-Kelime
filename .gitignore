@@ -1,0 +1,24 @@
+# --- Kullanici verisi: ASLA depoya girmez ---
+data/progress.db
+data/progress.db-journal
+data/backups/
+data/audio/
+data/_*.db
+
+# --- Ucuncu taraf ham veri kaynaklari (lisanslari bize ait degil) ---
+# Veri seti bunlardan uretilir; uretilmis data/oxford3000.json depodadir.
+tools/dict.zip
+tools/ciwga.csv
+tools/gist_tr.json
+tools/oxford3000.pdf
+
+# --- Derleme ciktilari (GitHub Releases'ten dagitilir) ---
+*.exe
+build/
+dist/
+*.spec.bak
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
