@@ -23,6 +23,26 @@ kaldırsan bile ilerleme dosyası silinmez.
 çalışır; hangi klasöre koyarsan ilerlemeyi yanındaki `data/` klasörüne yazar.
 Taşırsan `data/` klasörünü de birlikte taşı.
 
+### İlerlemem nerede? (taşınabilirden kuruluma geçiş)
+
+İlerleme **her zaman exe'nin yanındaki `data/` klasöründedir**. Bu, programı
+USB'de taşımayı mümkün kılar ama bir tuzağı vardır: taşınabilir exe ile
+çalışıp sonra kurulum paketini kurarsan, kurulu sürüm **başka bir klasörde**
+olduğu için bomboş bir ilerlemeyle açılır. Hiçbir şey silinmemiştir, eski
+ilerleme eski klasörde durur.
+
+Program bunu kendisi halleder: açılışta burada ilerleme yoksa kendi bilinen
+klasörlerine bakar (kurulum klasörü, exe'nin bulunduğu klasör ve bunların
+`backups/` klasörleri) ve çalışılmış bir ilerleme bulursa sorar:
+*"Buraya kopyalansın mı?"* — Evet dersen kopyalanır, **eski dosyaya
+dokunulmaz**. Kullanıcının belgeleri taranmaz; yalnızca bu sabit klasörlere
+bakılır (`app/handoff.py`).
+
+Kendin taşımak istersen: eski `data\progress.db` dosyasını yeni kurulumun
+`data` klasörüne kopyala, ya da Ayarlar → *Görünüm ve veri* → **Dosyadan geri
+yükle** ile seç. Kurulum klasörü:
+`%LocalAppData%\Programs\Oxford3000\data`
+
 Telaffuz sesi Google TTS'ten gelir ve internet ister; bir kez duyulan kelime
 önbelleğe alınır. Gerisi tamamen çevrimdışıdır.
 

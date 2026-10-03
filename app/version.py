@@ -9,7 +9,7 @@ Yeni surum cikarirken YALNIZCA burayi degistir, sonra:
     py tools/build_setup.py
 """
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 
 # GitHub deposu: guncelleme kontrolu ve "indir" baglantisi icin
 REPO = "Obirize/Oxford-3000-Kelime"

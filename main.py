@@ -18,7 +18,7 @@ dpi.enable()
 
 import tkinter.messagebox as mb  # noqa: E402
 
-from app import backup, db  # noqa: E402
+from app import backup, db, handoff  # noqa: E402
 from app.ui.app_window import AppWindow  # noqa: E402
 
 
@@ -39,6 +39,28 @@ def main() -> int:
             "İlerleme dosyası bulunamadı veya bozuktu.\n\n"
             f"Şu yedekten geri yüklendi:\n{backup.describe(recovered)}",
         )
+
+    # Burada ilerleme yoksa baska bir kopyada (orn. tasinabilir exe'nin yaninda
+    # ya da eski kurulum klasorunde) duruyor olabilir. Sorup devralalim -
+    # yoksa kullanici "ilerlemem gitti" sanir. (app/handoff.py)
+    if handoff.is_empty(db.DB_PATH):
+        other = handoff.find_elsewhere(db.DB_PATH)
+        if other and mb.askyesno(
+            "İlerlemeni buraya taşıyalım mı?",
+            "Bu klasörde kayıtlı ilerleme yok, ama başka bir klasörde "
+            "çalışılmış bir ilerleme bulundu:\n\n"
+            f"{other.label}\n\n"
+            "Buraya kopyalansın mı?\n"
+            "(Eski dosyaya dokunulmaz, yerinde kalır.)",
+        ):
+            if handoff.adopt(other, db.DB_PATH):
+                mb.showinfo("Taşındı", "İlerlemen bu kuruluma kopyalandı.")
+            else:
+                mb.showerror(
+                    "Taşınamadı",
+                    "İlerleme kopyalanamadı. Ayarlar → 'Dosyadan geri yükle' "
+                    f"ile şu dosyayı seçebilirsin:\n{other.path}",
+                )
 
     # Her acilista yedek al (bos veritabani yedeklenmez).
     backup.create(db.DB_PATH)
