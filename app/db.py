@@ -147,6 +147,8 @@ DEFAULT_SETTINGS = {
     "update_check": "1",         # acilista yeni surum var mi diye bak
     "update_last_check": "",     # gunde en fazla bir istek icin
     "update_skipped": "",        # "bu surumu hatirlatma" denen surum
+    "update_auto_download": "1",  # yeni surumu arka planda kendiliginden indir
+    "update_auto_install": "0",   # indidikten sonra sormadan kur ve yeniden baslat
 }
 
 

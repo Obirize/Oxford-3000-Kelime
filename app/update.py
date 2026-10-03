@@ -36,7 +36,7 @@ import json
 import queue
 import threading
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 
 from . import db
@@ -47,13 +47,39 @@ TIMEOUT = 8
 
 
 @dataclass
+class Asset:
+    """Surume eklenmis bir dosya (kurulum paketi, ozet listesi...)."""
+    name: str
+    url: str
+    size: int
+
+
+@dataclass
 class Release:
-    version: str          # '1.0.2'
-    url: str              # tarayicida acilacak surum sayfasi
+    version: str                   # '1.0.2'
+    url: str                       # tarayicida acilacak surum sayfasi
+    assets: list[Asset] = field(default_factory=list)
 
     @property
     def is_newer(self) -> bool:
         return is_newer(self.version)
+
+    def asset(self, *, name: str = "", prefix: str = "") -> Asset | None:
+        for item in self.assets:
+            if (name and item.name == name) or (prefix and item.name.startswith(prefix)):
+                return item
+        return None
+
+    @property
+    def installer(self) -> Asset | None:
+        """Sessizce kurulabilen kurulum paketi."""
+        from .updater import INSTALLER_PREFIX
+        return self.asset(prefix=INSTALLER_PREFIX)
+
+    @property
+    def checksums(self) -> Asset | None:
+        from .updater import CHECKSUM_ASSET
+        return self.asset(name=CHECKSUM_ASSET)
 
 
 def fetch() -> Release | None:
@@ -73,8 +99,16 @@ def fetch() -> Release | None:
     tag = str(data.get("tag_name") or "").strip()
     if not tag:
         return None
+    assets = [
+        Asset(name=str(a.get("name") or ""),
+              url=str(a.get("browser_download_url") or ""),
+              size=int(a.get("size") or 0))
+        for a in (data.get("assets") or [])
+        if a.get("name") and a.get("browser_download_url")
+    ]
     return Release(version=tag.lstrip("vV"),
-                   url=str(data.get("html_url") or RELEASES_URL))
+                   url=str(data.get("html_url") or RELEASES_URL),
+                   assets=assets)
 
 
 def checked_today(conn) -> bool:

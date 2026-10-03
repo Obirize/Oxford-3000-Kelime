@@ -11,6 +11,7 @@ asagidaki standart klasorlerden birinde olmali.)
 
 from __future__ import annotations
 
+import hashlib
 import os
 import shutil
 import subprocess
@@ -70,10 +71,19 @@ def main() -> int:
     portable = ROOT / "dist" / "Oxford3000.exe"
     shutil.copy2(ROOT / "Oxford3000.exe", portable)
 
+    # Otomatik guncelleyici indirdigi dosyayi bu ozetle dogrular (app/updater.py)
+    sums = ROOT / "dist" / "SHA256SUMS.txt"
+    sums.write_text(
+        "".join(f"{hashlib.sha256(f.read_bytes()).hexdigest()}  {f.name}\n"
+                for f in (path, portable)),
+        encoding="utf-8")
+
     print(f"\nhazir: {path.relative_to(ROOT)}  ({path.stat().st_size / 1e6:.1f} MB)")
     print(f"       {portable.relative_to(ROOT)}  "
           f"({portable.stat().st_size / 1e6:.1f} MB)")
-    print(f"\nIkisini de GitHub Releases'e v{VERSION} etiketiyle yukle.")
+    print(f"       {sums.relative_to(ROOT)}")
+    print(f"\nUCUNU de GitHub Releases'e v{VERSION} etiketiyle yukle.")
+    print("SHA256SUMS.txt olmazsa otomatik guncelleme ozeti dogrulayamaz.")
     return 0
 
 

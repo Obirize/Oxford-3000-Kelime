@@ -64,6 +64,9 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "Programı şimdi başlat"; Flags: nowait postinstall skipifsilent
+; Program kendi kendini guncellerken sessiz kurulumu "/RESTARTAPP=1" ile
+; baslatir; kurulum bitince kendisini geri acar (app/updater.py).
+Filename: "{app}\{#AppExe}"; Flags: nowait; Check: WantsRestart
 
 [UninstallDelete]
 ; Yalnizca onbellek silinir; ilerleme (progress.db) ve yedekler KALIR.
@@ -72,3 +75,17 @@ Type: filesandordirs; Name: "{app}\data\audio"
 [Messages]
 WelcomeLabel2=Bu sihirbaz [name/ver] programını bilgisayarınıza kuracak.%n%nİngilizcede en sık kullanılan 3000 kelimeyi (Oxford 3000) Türkçe karşılıklarıyla ezberlemek için masaüstü programı. Tamamen çevrimdışı çalışır; yalnızca telaffuz sesi için internet kullanır.
 FinishedLabel=Kurulum tamamlandı. İlerlemeniz şu klasörde tutulur:%n[name] klasörü içindeki data\progress.db%n%nProgram her açılışta otomatik yedek alır.
+
+[Code]
+function WantsRestart: Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 1 to ParamCount do
+    if CompareText(ParamStr(I), '/RESTARTAPP=1') = 0 then
+    begin
+      Result := True;
+      Exit;
+    end;
+end;

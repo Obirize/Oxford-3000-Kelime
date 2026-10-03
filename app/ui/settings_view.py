@@ -229,11 +229,21 @@ class SettingsView(ttk.Frame):
                     "Açılışta yeni sürüm var mı diye bak (günde en fazla bir kez)")
         tk.Label(box, text="Kontrol GitHub'ın açık sürüm listesine tek bir istek "
                            "atar; hiçbir kişisel veri veya ilerleme gönderilmez. "
-                           "Program kendini güncellemez — yeni sürüm varsa üstte "
-                           "bir not çıkar, indirip kurmak sana kalır. "
-                           "İlerlemen kurulumda korunur.",
+                           "Yeni sürüm varsa üstte bir şerit çıkar; program "
+                           "kurulumu indirip kurabilir. İlerlemen korunur.",
                  bg=c["surface"], fg=c["text_dim"], font=F_SMALL,
                  wraplength=px(620), justify="left").pack(anchor="w", pady=(4, 10))
+        self._check(box, "update_auto_download",
+                    "Yeni sürümü arka planda kendiliğinden indir")
+        self._check(box, "update_auto_install",
+                    "İndirince sormadan kur ve programı yeniden başlat")
+        tk.Label(box, text="Kurulum yalnızca kurulum paketiyle kurulmuş kopyada "
+                           "yapılır; taşınabilir exe kendi kendini değiştirmez. "
+                           "İndirilen dosyanın SHA-256 özeti doğrulanmadan "
+                           "çalıştırılmaz.",
+                 bg=c["surface"], fg=c["text_dim"], font=F_SMALL,
+                 wraplength=px(620), justify="left").pack(anchor="w", pady=(4, 10))
+
         row = tk.Frame(box, bg=c["surface"])
         row.pack(anchor="w")
         ttk.Button(row, text="Şimdi kontrol et",

@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import queue
+import threading
 import tkinter as tk
 import webbrowser
-from tkinter import ttk
+from pathlib import Path
+from tkinter import messagebox, ttk
 
-from .. import backup, db, paths, stats, update
+from .. import backup, db, paths, stats, update, updater
+from ..version import RELEASES_URL, VERSION
 from .theme import F_H2, F_SMALL, F_STAT, F_TITLE, Theme, px, segmented_bar
-
-from ..version import VERSION
 
 APP_TITLE = "Oxford 3000 · İngilizce Kelime Ezberleme"
 
@@ -108,9 +110,16 @@ class StatusBar(ttk.Frame):
 
 
 class UpdateBar(ttk.Frame):
-    """Yeni surum cikinca ust tarafta beliren ince serit.
+    """Yeni surum seridi: haber verir, indirir ve kurar.
 
-    Hicbir sey indirmez/kurmaz - tek yaptigi surum sayfasini tarayicida acmak.
+    Durumlar
+        bulundu   -> "Güncelle" (kurulu kopyada) / "İndirme sayfası" (tasinabilir)
+        iniyor    -> ilerleme cubugu + "Vazgeç"
+        hazir     -> "Kur ve yeniden başlat"
+        hata      -> mesaj + "İndirme sayfası"
+
+    Indirme arka plan is parcaciginda yapilir; Tk'ya yalnizca ana is
+    parcacigindan dokunulur (sonuclar kuyruga dusurulur, _pump yoklar).
     "Şimdilik gizle" o surumu bir daha hatirlatmaz (ayar: update_skipped).
     """
 
@@ -118,28 +127,149 @@ class UpdateBar(ttk.Frame):
         super().__init__(master, style="Card.TFrame")
         self.theme, self.conn = theme, conn
         self.release = None
-        c = theme.c
+        self.installer: Path | None = None
+        self._events: queue.Queue = queue.Queue()
+        self._cancel = False
+        self._busy = False
 
         pad = ttk.Frame(self, style="Card.TFrame")
         pad.pack(fill="x", padx=px(18), pady=px(10))
         self.text = ttk.Label(pad, text="", style="Card.TLabel", font=F_H2)
         self.text.pack(side="left")
-        ttk.Button(pad, text="Şimdilik gizle", style="Ghost.TButton",
-                   command=self.skip).pack(side="right")
-        ttk.Button(pad, text="İndirme sayfasını aç", style="Accept.TButton",
-                   command=self.open_page).pack(side="right", padx=(0, 8))
 
+        self.hide_btn = ttk.Button(pad, text="Şimdilik gizle", style="Ghost.TButton",
+                                   command=self.skip)
+        self.hide_btn.pack(side="right")
+        self.action_btn = ttk.Button(pad, text="", style="Accept.TButton",
+                                     command=self._on_action)
+        self.action_btn.pack(side="right", padx=(0, 8))
+        self.progress = ttk.Progressbar(pad, mode="determinate", length=px(220))
+
+    # ------------------------------------------------------------ gorunum
     def show(self, release) -> None:
         self.release = release
+        self.installer = None
+        self._cancel = False
         self.text.config(
             text=f"⬆  Yeni sürüm var: {release.version}  "
                  f"(sende {VERSION})  ·  ilerlemen korunur"
         )
+        self._set_action("⬇  Güncelle" if self._can_install()
+                         else "İndirme sayfasını aç")
         self.pack(fill="x", padx=16, pady=(10, 0), after=self.master.status)
+        if (self._can_install()
+                and db.get_int(self.conn, "update_auto_download", 1) == 1):
+            self.start_download(auto=True)
 
-    def open_page(self) -> None:
-        if self.release:
-            webbrowser.open(self.release.url)
+    def _can_install(self) -> bool:
+        return bool(self.release and self.release.installer and updater.is_installed())
+
+    def _set_action(self, label: str, *, enabled: bool = True) -> None:
+        self.action_btn.config(text=label,
+                               state="normal" if enabled else "disabled")
+
+    def _on_action(self) -> None:
+        if self.installer is not None:
+            self.install()
+        elif self._busy:
+            self._cancel = True                   # "Vazgeç"
+        elif self._can_install():
+            self.start_download()
+        else:
+            webbrowser.open(self.release.url if self.release else RELEASES_URL)
+
+    # ------------------------------------------------------------ indirme
+    def start_download(self, *, auto: bool = False) -> None:
+        if self._busy or self.release is None:
+            return
+        self._busy, self._cancel = True, False
+        self.progress.config(value=0, maximum=100)
+        self.progress.pack(side="right", padx=(0, 12))
+        self.text.config(text=f"⬇  {self.release.version} indiriliyor…")
+        self._set_action("Vazgeç")
+        self.hide_btn.config(state="disabled")
+
+        release = self.release
+
+        def worker() -> None:
+            try:
+                path = updater.prepare(
+                    release,
+                    progress=lambda done, total: self._events.put(("p", (done, total))),
+                    cancelled=lambda: self._cancel,
+                )
+                self._events.put(("ok", path))
+            except updater.UpdateError as err:
+                self._events.put(("err", str(err)))
+            except Exception as err:                      # beklenmeyen her sey
+                self._events.put(("err", f"Güncelleme yapılamadı: {err}"))
+
+        threading.Thread(target=worker, daemon=True, name="update-download").start()
+        self.after(100, lambda: self._pump(auto))
+
+    def _pump(self, auto: bool) -> None:
+        """Arka plandan gelen olaylari ANA is parcaciginda isler."""
+        try:
+            while True:
+                kind, payload = self._events.get_nowait()
+                if kind == "p":
+                    done, total = payload
+                    if total:
+                        self.progress.config(value=100 * done / total)
+                        self.text.config(
+                            text=f"⬇  {self.release.version} indiriliyor…  "
+                                 f"%{100 * done / total:.0f}  "
+                                 f"({done / 1e6:.1f} / {total / 1e6:.1f} MB)")
+                elif kind == "ok":
+                    self._downloaded(payload, auto)
+                    return
+                elif kind == "err":
+                    self._failed(payload)
+                    return
+        except queue.Empty:
+            pass
+        if self._busy:
+            self.after(100, lambda: self._pump(auto))
+
+    def _downloaded(self, path, auto: bool) -> None:
+        self._busy = False
+        self.installer = path
+        self.progress.pack_forget()
+        self.hide_btn.config(state="normal")
+        self.text.config(text=f"✅  {self.release.version} indirildi  ·  "
+                              "kurulum birkaç saniye sürer, ilerlemen korunur")
+        self._set_action("Kur ve yeniden başlat")
+        if auto and db.get_int(self.conn, "update_auto_install", 0) == 1:
+            self.install()
+
+    def _failed(self, message: str) -> None:
+        self._busy = False
+        self.installer = None
+        self.progress.pack_forget()
+        self.hide_btn.config(state="normal")
+        if self._cancel:
+            self.text.config(text="İndirme iptal edildi.")
+            self._set_action("⬇  Güncelle")
+            return
+        self.text.config(text=f"⚠  {message}")
+        self._set_action("İndirme sayfasını aç")
+        self.installer = None
+
+    # ------------------------------------------------------------ kurulum
+    def install(self) -> None:
+        """Kurulumu baslatir ve programdan cikar.
+
+        Calisan exe'nin uzerine yazilacagi icin once biz kapaniyoruz; kurulum
+        bitince program kendiliginden geri acilir (/RESTARTAPP=1).
+        """
+        if self.installer is None:
+            return
+        try:
+            updater.launch(self.installer)
+        except updater.UpdateError as err:
+            messagebox.showerror("Güncelleme", str(err))
+            return
+        self.master.on_close()
 
     def skip(self) -> None:
         if self.release:

@@ -344,37 +344,60 @@ değiştirilmez — bunlar gerçek İngilizce kelimelerdir, çevirileri doğrudu
 
 ## Güncelleme
 
-Program **kendini güncellemez**, ama yeni sürümden haberin olur: açılıştan
-birkaç saniye sonra arka planda GitHub'ın açık sürüm listesine tek bir istek
-atılır (`app/update.py`). Daha yeni bir sürüm varsa üstte ince bir şerit çıkar:
+Program kendi kendini günceller. Açılıştan birkaç saniye sonra arka planda
+GitHub'ın sürüm listesine tek bir istek atılır (`app/update.py`); yeni sürüm
+varsa kurulum paketi **kendiliğinden indirilir** (üstteki şeritte ilerleme
+çubuğu görünür) ve iner inmez tek düğme kalır: **Kur ve yeniden başlat**.
+Basınca program kapanır, kurulum sessizce yapılır ve program kendiliğinden
+geri açılır. İlerlemen yerinde kalır.
 
-- **İndirme sayfasını aç** → tarayıcıda Releases sayfası açılır, kurulumu sen
-  yaparsın. Üstüne kurmak ilerlemeni silmez (`data/progress.db` yerinde kalır).
-- **Şimdilik gizle** → o sürüm bir daha hatırlatılmaz (Ayarlar'dan "Şimdi
-  kontrol et" dersen yine gösterilir).
+Ayarlar → *Sürüm ve güncelleme*:
 
-Ayrıntılar:
+| Ayar | Varsayılan | Ne yapar |
+|---|---|---|
+| Açılışta yeni sürüm kontrolü | açık | Günde en fazla bir istek; kapalıyken hiç istek gitmez |
+| Arka planda kendiliğinden indir | açık | Şerit çıkar çıkmaz indirmeye başlar |
+| İndirince sormadan kur | kapalı | Açarsan hiç düğmeye basmadan kurar ve yeniden başlatır |
 
-- Günde en fazla **bir** istek atılır; Ayarlar → *Sürüm ve güncelleme*'den
-  tamamen kapatılabilir, kapalıyken hiç istek gitmez.
-- İstekte **hiçbir kişisel veri yoktur** — ne ilerleme, ne kimlik, ne
-  tanımlayıcı. Yalnızca bir GET ve `Oxford3000/<sürüm>` tarayıcı kimliği.
-- İnternet yoksa veya GitHub yanıt vermezse sessizce vazgeçilir; o gün
-  "bakıldı" sayılmaz, ertesi açılışta yeniden denenir.
-- Ağ isteği arka planda yapılır, Tk ve SQLite'a yalnızca ana iş parçacığından
-  dokunulur (sonuç bir kuyruğa bırakılır, arayüz onu yoklar).
+Kapalıyken de "Şimdi kontrol et" ile elle bakabilirsin.
 
-Sürüm numarasının tek kaynağı **`app/version.py`**. Yeni sürüm çıkarırken
-yalnızca oradaki `VERSION` değiştirilir; `version_info.txt` (exe özellikleri)
-ve kurulum paketinin sürümü derleme sırasında oradan üretilir:
+### Güvenlik ve sınırlar
+
+- **İndirme adresi doğrulanır.** Yalnızca `github.com` (ve bu deponun yolu) ile
+  GitHub'ın kendi dosya sunucularından, yalnızca HTTPS ile indirilir. API
+  yanıtı başka bir adrese işaret ederse indirme yapılmaz.
+- **SHA-256 doğrulanır.** Her sürüme `SHA256SUMS.txt` konur; indirilen dosyanın
+  özeti tutmazsa dosya silinir ve **kurulum çalıştırılmaz**. Boyut da API'nin
+  bildirdiğiyle karşılaştırılır.
+- **Taşınabilir kopya kendini güncellemez.** `Oxford3000.exe` tek başına
+  çalışıyorsa (USB'deki gibi) sadece sürüm sayfası açılır — çalışan dosyanın
+  üzerine yazmak risklidir ve onu oraya sen koymuşsundur. Kurulu kopya,
+  yanındaki `unins000.exe` ile tanınır.
+- **İstekte hiçbir kişisel veri yoktur** — ne ilerleme, ne kimlik, ne
+  tanımlayıcı. Yalnızca GET ve `Oxford3000/<sürüm>` tarayıcı kimliği.
+- İnternet yoksa veya indirme yarıda kalırsa sessizce vazgeçilir, yarım dosya
+  silinir; o gün "bakıldı" sayılmaz, ertesi açılışta yeniden denenir.
+- Ağ işi arka planda yapılır; Tk ve SQLite'a yalnızca ana iş parçacığından
+  dokunulur (sonuçlar bir kuyruğa bırakılır, arayüz onu yoklar).
+
+Kurulum, sessiz çalıştırıldığında `/RESTARTAPP=1` parametresini görürse
+programı yeniden açar (`installer/Oxford3000.iss` → `[Code] WantsRestart`).
+
+### Yeni sürüm çıkarmak
+
+Sürüm numarasının tek kaynağı **`app/version.py`**. Yalnızca oradaki `VERSION`
+değiştirilir; `version_info.txt` (exe özellikleri) ve kurulum paketinin sürümü
+derlemede oradan üretilir:
 
 ```bash
-py tools/build_setup.py      # exe + dist/Oxford3000-Kurulum-<sürüm>.exe
-py tools/update_test.py      # güncelleme kontrolü testi (ağa çıkmaz)
+py tools/build_setup.py      # exe + kurulum + SHA256SUMS.txt
+py tools/update_test.py      # sürüm bildirimi testi (ağa çıkmaz)
+py tools/updater_test.py     # indirme/doğrulama/kurulum testi (ağa çıkmaz)
 ```
 
-Sonra `dist/` içindeki iki dosyayı GitHub'da `v<sürüm>` etiketli yeni bir
-Release'e yükle — kullanıcılar şeridi o zaman görür.
+Sonra `dist/` içindeki **üç** dosyayı da GitHub'da `v<sürüm>` etiketli yeni bir
+Release'e yükle. `SHA256SUMS.txt` yüklenmezse özet doğrulanamaz; kurulum paketi
+yüklenmezse kullanıcıya otomatik güncelleme yerine indirme sayfası gösterilir.
 
 ## Görünüm ve yazı netliği
 
