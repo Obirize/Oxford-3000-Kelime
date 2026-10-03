@@ -1,8 +1,19 @@
 """Uygulama logosunu (ikon) uretir.
 
 Tasarim: koyu lacivert yuvarlak kare uzerinde beyaz bir kelime karti; kartin
-uzerinde "EN" ve altinda yesil bir onay isareti. 16 pikselde de okunur kalsin
-diye ayrintilar az, kontrast yuksek tutuldu.
+uzerinde "EN" ve altinda yesil bir onay isareti.
+
+IKI AYRI CIZIM
+    Kucuk boyutlarda (<= 24 px) kart/cizgi/rozet ayrintisi lapaya doner; o
+    boyutlarda yalnizca lacivert zemin + buyuk "EN" cizilir. Buyuk boyutlarda
+    tam tasarim kullanilir.
+
+BOYUTLAR
+    Windows, ekran olceklendirmesine gore FARKLI boyutlar ister:
+        %100 -> 16    %125 -> 20    %150 -> 24    %200 -> 32
+    Istedigi boyut ikonda yoksa en yakinini esnetir ve ikon BULANIK gorunur.
+    (%125 ekranda gorev cubugunda yasanan tam olarak buydu: 20 px yoktu.)
+    Bu yuzden asagidaki liste Windows'un isteyebilecegi tum boyutlari icerir.
 
     py tools/make_icon.py     ->  assets/app.ico  +  assets/logo.png
 """
@@ -24,7 +35,11 @@ INK = (27, 39, 71)
 ACCENT = (91, 140, 255)
 OK = (62, 207, 142)
 
-SIZES = [256, 128, 64, 48, 32, 16]
+# Buyukten kucuge; Windows'un isteyebilecegi her boyut burada olmali.
+SIZES = [256, 128, 96, 64, 48, 40, 32, 24, 20, 16]
+
+# Bu boyugun altinda ayrintili cizim okunmuyor; sade bicime geciyoruz.
+SMALL_MAX = 24
 
 
 def _font(size: int):
@@ -41,8 +56,41 @@ def _rounded(draw, box, radius, fill, outline=None, width=1):
                            outline=outline, width=width)
 
 
+def render_small(size: int) -> Image.Image:
+    """16-24 px icin sade bicim: lacivert zemin + buyuk 'EN'.
+
+    Kucuk boyutta kart, cizgi ve rozet birkac piksele siktigi icin lekeye
+    donuyordu; burada tek bir okunakli oge birakiyoruz.
+    """
+    scale = 16
+    s = size * scale
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+
+    bg = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    bd = ImageDraw.Draw(bg)
+    for y in range(s):
+        t = y / max(s - 1, 1)
+        color = tuple(int(BG_TOP[i] + (BG_BOTTOM[i] - BG_TOP[i]) * t) for i in range(3))
+        bd.line([(0, y), (s, y)], fill=color + (255,))
+    mask = Image.new("L", (s, s), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, s - 1, s - 1],
+                                           radius=int(s * 0.20), fill=255)
+    img.paste(bg, (0, 0), mask)
+
+    text = "EN"
+    font = _font(int(s * 0.62))
+    box = d.textbbox((0, 0), text, font=font)
+    tw, th = box[2] - box[0], box[3] - box[1]
+    d.text(((s - tw) / 2 - box[0], (s - th) / 2 - box[1]), text,
+           font=font, fill=(255, 255, 255, 255))
+    return img.resize((size, size), Image.LANCZOS)
+
+
 def render(size: int) -> Image.Image:
     """Ikonu yuksek cozunurlukte cizip kucultur (kenarlar yumusak olsun)."""
+    if size <= SMALL_MAX:
+        return render_small(size)
     scale = 8
     s = size * scale
     img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
@@ -109,10 +157,13 @@ def main() -> int:
     images[0].save(png, format="PNG")
 
     # onizleme: tum boyutlar yan yana
-    preview = Image.new("RGBA", (sum(SIZES) + 20 * len(SIZES), 276), (18, 21, 28, 255))
+    preview = Image.new("RGBA", (sum(SIZES) + 20 * len(SIZES), 296), (18, 21, 28, 255))
     x = 10
     for img, n in zip(images, SIZES):
         preview.paste(img, (x, (256 - n) // 2 + 10), img)
+        # boyut etiketi: hangi olceklendirmede hangisinin kullanildigi gorunsun
+        ImageDraw.Draw(preview).text((x, 276), f"{n}", fill=(140, 150, 170, 255),
+                                     font=_font(14))
         x += n + 20
     preview.save(ASSETS / "icon_preview.png")
 
