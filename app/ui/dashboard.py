@@ -7,7 +7,7 @@ from tkinter import ttk
 
 from .. import stats
 from ..stats import LEVELS
-from .theme import F_BODY, F_H2, F_SMALL, F_STAT, F_TITLE, px
+from .theme import F_BODY, F_H2, F_SMALL, F_STAT, F_TITLE, level_segments, px, segmented_bar
 
 
 class DashboardView(ttk.Frame):
@@ -70,7 +70,8 @@ class DashboardView(ttk.Frame):
             row.pack(fill="x", pady=4)
             tk.Label(row, text=level, bg=c["surface"], fg=c["text_dim"],
                      font=F_SMALL, width=3, anchor="w").pack(side="left")
-            bar = tk.Canvas(row, height=9, bg=c["surface_alt"], highlightthickness=0)
+            bar = tk.Canvas(row, height=px(9), bg=c["surface_alt"],
+                            highlightthickness=0)
             bar.pack(side="left", fill="x", expand=True, padx=8)
             bar.bind("<Configure>", lambda _e: self._draw_levels())
             lbl = tk.Label(row, text="", bg=c["surface"], fg=c["text_dim"],
@@ -87,15 +88,11 @@ class DashboardView(ttk.Frame):
     def _draw_goal(self) -> None:
         c = self.theme.c
         cards, _correct, goal = stats.today_progress(self.conn)
-        width = max(self.goal_bar.winfo_width(), 1)
-        self.goal_bar.delete("all")
-        self.goal_bar.create_rectangle(0, 0, width, 14, fill=c["surface_alt"],
-                                       outline="")
-        filled = min(cards / goal, 1.0) if goal else 0
-        if filled > 0:
-            color = c["ok"] if filled >= 1 else c["accent"]
-            self.goal_bar.create_rectangle(0, 0, width * filled, 14, fill=color,
-                                           outline="")
+        done = min(cards, goal) if goal else 0
+        color = c["ok"] if goal and cards >= goal else c["accent"]
+        segmented_bar(self.goal_bar,
+                      [(done, color), (max(goal - done, 0), c["surface_alt"])],
+                      bg=c["surface_alt"])
 
     def _draw_levels(self) -> None:
         c = self.theme.c
@@ -104,13 +101,8 @@ class DashboardView(ttk.Frame):
             bar, lbl = self.level_rows[level]
             data = levels.get(level, {"total": 0, "mastered": 0, "learning": 0})
             total = data["total"] or 1
-            w = max(bar.winfo_width(), 1)
-            bar.delete("all")
-            bar.create_rectangle(0, 0, w, 9, fill=c["surface_alt"], outline="")
-            x = w * data["mastered"] / total
-            bar.create_rectangle(0, 0, x, 9, fill=c["known"], outline="")
-            bar.create_rectangle(x, 0, x + w * data["learning"] / total, 9,
-                                 fill=c["learning"], outline="")
+            segmented_bar(bar, level_segments(data, total, c),
+                          bg=c["surface_alt"])
             lbl.config(text=f"{data['mastered']}/{data['total']}")
 
     # ------------------------------------------------------------------ yenile

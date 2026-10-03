@@ -11,7 +11,7 @@
 ; Surum tools/build_setup.py tarafindan app/version.py'den gecirilir
 ; (ISCC /DAppVersion=x.y.z). Elle derlerken asagidaki deger kullanilir.
 #ifndef AppVersion
-  #define AppVersion "0.0.0"
+  #error Surum verilmedi. Bunu elle derleme; "py tools/build_setup.py" kullan.
 #endif
 #define AppPublisher "Obirize"
 #define AppURL       "https://github.com/Obirize/Oxford-3000-Kelime"

@@ -59,9 +59,13 @@ def main() -> int:
     subprocess.run([str(iscc), "/Q", f"/DAppVersion={VERSION}", str(ISS)],
                    cwd=ROOT, check=True)
 
-    path = ROOT / "dist" / f"Oxford3000-Kurulum-{VERSION}.exe"
-    if not path.exists():
+    # Dosya adini .iss belirler (OutputBaseFilename); burada yeniden kurmak
+    # yerine uretileni buluyoruz ki iki yerde tanimli olmasin.
+    produced = sorted((ROOT / "dist").glob("Oxford3000-Kurulum-*.exe"),
+                      key=lambda p: p.stat().st_mtime)
+    if not produced:
         raise SystemExit("kurulum dosyasi uretilemedi")
+    path = produced[-1]
     # Tasinabilir exe de yanina konur: Releases'e ikisi birden yuklenir
     portable = ROOT / "dist" / "Oxford3000.exe"
     shutil.copy2(ROOT / "Oxford3000.exe", portable)

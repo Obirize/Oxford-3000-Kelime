@@ -49,7 +49,6 @@ TIMEOUT = 8
 @dataclass
 class Release:
     version: str          # '1.0.2'
-    name: str             # 'Oxford 3000 Kelime v1.0.2'
     url: str              # tarayicida acilacak surum sayfasi
 
     @property
@@ -74,11 +73,8 @@ def fetch() -> Release | None:
     tag = str(data.get("tag_name") or "").strip()
     if not tag:
         return None
-    return Release(
-        version=tag.lstrip("vV"),
-        name=str(data.get("name") or tag),
-        url=str(data.get("html_url") or RELEASES_URL),
-    )
+    return Release(version=tag.lstrip("vV"),
+                   url=str(data.get("html_url") or RELEASES_URL))
 
 
 def checked_today(conn) -> bool:
@@ -89,7 +85,19 @@ def mark_checked(conn) -> None:
     db.set_setting(conn, "update_last_check", date.today().isoformat())
 
 
-def start(conn, *, force: bool = False) -> "queue.Queue | None":
+def should_notify(conn, release: Release, *, force: bool = False) -> bool:
+    """Bu surum icin kullaniciya serit gosterilmeli mi?
+
+    Tek karar yeri: hem acilistaki kontrol hem Ayarlar'daki elle kontrol
+    bunu kullanir. "Şimdilik gizle" denen surum bir daha gosterilmez - ama
+    kullanici kendisi kontrol ederse (force) yine gosterilir.
+    """
+    if not release.is_newer:
+        return False
+    return force or release.version != db.get_setting(conn, "update_skipped", "")
+
+
+def _start(conn, *, force: bool = False) -> "queue.Queue | None":
     """Arka planda kontrolu baslatir ve sonucun dusecegi kuyrugu dondurur.
 
     Ayar kapaliysa veya bugun zaten bakildiysa None doner (istek atilmaz).
@@ -111,28 +119,44 @@ def start(conn, *, force: bool = False) -> "queue.Queue | None":
     return result
 
 
-def poll(widget, result: "queue.Queue", on_result, *,
-         tries: int = 0, limit: int = 60, delay: int = 400) -> None:
+class _Poller:
     """Kuyrugu ANA is parcaciginda yoklar; sonuc gelince on_result(...) cagirir.
 
-    Sonuc gelmezse `limit` kez `delay` ms arayla tekrar bakar (varsayilan 24 sn;
-    ag zaman asimi 8 sn). Sure dolarsa sessizce vazgecer.
+    Kendini yeniden kurar. Her yoklamada yeni bir closure uretmek yerine tek
+    nesne kullanilir: Tk'nin zamanlayici tablosunda yalnizca bunun ihtiyaci
+    olan uc alan asili kalir.
+
+    Bekleme hizli baslar, sonra yavaslar (50 -> 800 ms): sonuc genelde ilk
+    saniyede gelir, ag yavassa bosa uyanilmaz. fetch() en fazla TIMEOUT
+    saniye surer ve worker her durumda kuyruga bir sey birakir, bu yuzden
+    sonsuza kadar beklemek diye bir durum yok.
     """
-    try:
-        release = result.get_nowait()
-    except queue.Empty:
-        if tries < limit:
-            widget.after(delay, lambda: poll(widget, result, on_result,
-                                             tries=tries + 1, limit=limit,
-                                             delay=delay))
-        return
-    on_result(release)
+
+    __slots__ = ("widget", "result", "on_result", "delay")
+
+    def __init__(self, widget, result: "queue.Queue", on_result):
+        self.widget = widget
+        self.result = result
+        self.on_result = on_result
+        self.delay = 50
+
+    def __call__(self) -> None:
+        try:
+            release = self.result.get_nowait()
+        except queue.Empty:
+            self.delay = min(self.delay * 2, 800)
+            self.widget.after(self.delay, self)
+            return
+        self.on_result(release)
 
 
 def check_async(conn, widget, on_result, *, force: bool = False) -> bool:
-    """start() + poll() kisayolu. Kontrol baslatildiysa True."""
-    result = start(conn, force=force)
+    """Kontrolu baslatir ve sonucu ana is parcaciginda on_result'a verir.
+
+    Bu modulun tek giris noktasidir. Kontrol baslatildiysa True.
+    """
+    result = _start(conn, force=force)
     if result is None:
         return False
-    poll(widget, result, on_result)
+    _Poller(widget, result, on_result)()
     return True

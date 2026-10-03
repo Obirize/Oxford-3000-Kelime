@@ -16,7 +16,7 @@ ezberlemek için masaüstü programı. Tamamen çevrimdışı çalışır, web d
 > bir program olduğu için). **Daha fazla bilgi → Yine de çalıştır** de.
 
 İlerlemen kurulum klasöründeki `data\progress.db` dosyasında tutulur; program
-her açılış ve kapanışta `dataackups\` altına otomatik yedek alır. Programı
+her açılış ve kapanışta `data\backups\` altına otomatik yedek alır. Programı
 kaldırsan bile ilerleme dosyası silinmez.
 
 **Kurulumsuz kullanmak istersen:** Releases'teki `Oxford3000.exe` tek başına

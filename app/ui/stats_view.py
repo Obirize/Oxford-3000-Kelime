@@ -10,7 +10,7 @@ from tkinter import ttk
 
 from .. import stats
 from ..stats import LEVELS
-from .theme import F_BODY, F_H2, F_SMALL, F_STAT, F_TITLE, px
+from .theme import F_BODY, F_H2, F_SMALL, F_STAT, F_TITLE, level_segments, px, segmented_bar
 
 
 class StatsView(ttk.Frame):
@@ -55,7 +55,8 @@ class StatsView(ttk.Frame):
                                      fg=c["text_dim"], font=F_SMALL)
         self.chart_legend.pack(side="right")
 
-        self.chart = tk.Canvas(pad, bg=c["surface"], highlightthickness=0, height=230)
+        self.chart = tk.Canvas(pad, bg=c["surface"], highlightthickness=0,
+                               height=px(230))
         self.chart.pack(fill="both", expand=True, pady=(12, 0))
         self.chart.bind("<Configure>", lambda _e: self.draw_chart())
 
@@ -105,13 +106,8 @@ class StatsView(ttk.Frame):
             bar, lbl = self.level_rows[level]
             data = levels.get(level, {"total": 0, "mastered": 0, "learning": 0})
             total = data["total"] or 1
-            w = max(bar.winfo_width(), 1)
-            bar.delete("all")
-            bar.create_rectangle(0, 0, w, 13, fill=c["surface_alt"], outline="")
-            x = w * data["mastered"] / total
-            bar.create_rectangle(0, 0, x, 13, fill=c["known"], outline="")
-            bar.create_rectangle(x, 0, x + w * data["learning"] / total, 13,
-                                 fill=c["learning"], outline="")
+            segmented_bar(bar, level_segments(data, total, c),
+                          bg=c["surface_alt"])
             pct = 100 * data["mastered"] / total
             lbl.config(text=f"{data['mastered']}/{data['total']}  ·  %{pct:.0f}")
 

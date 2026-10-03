@@ -16,14 +16,14 @@ REPO = "Obirize/Oxford-3000-Kelime"
 RELEASES_URL = f"https://github.com/{REPO}/releases/latest"
 
 
-def as_tuple(text: str | None = None) -> tuple[int, ...]:
+def as_tuple(text: str) -> tuple[int, ...]:
     """'v1.2.3' -> (1, 2, 3). Sayi olmayan parcalar atlanir.
 
-    text=None ise bu surum kullanilir. BOS metin (0,) dondurur - 'surum
-    okunamadi' durumu yanlislikla 'yeni surum' sayilmasin.
+    BOS metin (0,) dondurur - 'surum okunamadi' durumu yanlislikla
+    'yeni surum' sayilmasin.
     """
     parts = []
-    for chunk in (VERSION if text is None else text).strip().lstrip("vV").split("."):
+    for chunk in text.strip().lstrip("vV").split("."):
         digits = "".join(ch for ch in chunk if ch.isdigit())
         if not digits:
             break

@@ -71,7 +71,7 @@ class WordListView(ttk.Frame):
         for key, text, width in headers:
             self.tree.heading(key, text=text,
                               command=lambda k=key: self.sort_by(k))
-            self.tree.column(key, width=width,
+            self.tree.column(key, width=px(width),
                              anchor="w" if key in ("word", "tr") else "center")
         self.tree.pack(side="left", fill="both", expand=True)
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
@@ -87,7 +87,7 @@ class WordListView(ttk.Frame):
         self.tree.tag_configure("pool", foreground=c["text_dim"])
 
         # ------------------------------------------------------------ detay
-        panel = tk.Frame(split, bg=c["surface"], width=330)
+        panel = tk.Frame(split, bg=c["surface"], width=px(330))
         panel.pack(side="right", fill="y", padx=(12, 0))
         panel.pack_propagate(False)
         self.panel = tk.Frame(panel, bg=c["surface"])

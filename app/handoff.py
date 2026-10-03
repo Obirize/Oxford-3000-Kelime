@@ -14,25 +14,27 @@ Acilista ilerleme YOKSA ya da hic calisilmamissa, bilinen diger konumlara
 bakilir. Dolu bir ilerleme bulunursa kullaniciya sorulur ve onay verirse
 kopyalanir. Hicbir dosya SILINMEZ; eski kopya yerinde kalir.
 
-Taranan yerler yalnizca bu programin kendi klasorleridir; kullanicinin
-belgeleri taranmaz.
+Dosya sistemi TARANMAZ: yalnizca kurulum paketinin kullandigi klasor ve
+programin kendi klasoru denenir (asagidaki CANDIDATES).
+
+Saglamlik ve "ice aktarmaya deger mi" kararlari backup.py'ye birakilir
+(is_healthy / has_progress / restore) - tek bir saglamlik tanimi olsun.
 """
 
 from __future__ import annotations
 
 import os
-import shutil
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import paths
+from . import backup, paths
 
 
 @dataclass
 class Found:
     path: Path
-    studied: int      # havuz disindaki kelime sayisi (biliniyor/ogreniliyor/ogrenildi)
+    studied: int      # havuz disindaki kelime sayisi
     reviews: int      # toplam cevap
     last_seen: str    # son cevap zamani ('' olabilir)
 
@@ -43,66 +45,60 @@ class Found:
                 f"{self.path}")
 
 
-def _candidate_dirs() -> list[Path]:
-    """Bu programin ilerleme tutabilecegi bilinen klasorler."""
-    out: list[Path] = []
+def _data_dirs() -> list[Path]:
+    """Ilerleme tutabilecek bilinen klasorler (tarama yok, sabit liste).
+
+    Kurulum paketi her zaman %LocalAppData%\\Programs\\Oxford3000 kullanir
+    (installer/Oxford3000.iss -> DefaultDirName); yonetici olarak kurulursa
+    Program Files altina duser. Tasinabilir kopyada ise veri exe'nin yanindadir.
+    """
+    out = [paths.app_dir() / "data"]
     local = os.environ.get("LOCALAPPDATA", "")
-    program_files = os.environ.get("ProgramFiles", "")
-    program_files_x86 = os.environ.get("ProgramFiles(x86)", "")
-    for base in (local, program_files, program_files_x86):
-        if not base:
-            continue
-        out.append(Path(base) / "Programs" / "Oxford3000" / "data")
-        out.append(Path(base) / "Oxford3000" / "data")
-    # Tasinabilir kopya: exe'nin yani ve bir ustu
-    out.append(paths.app_dir() / "data")
-    out.append(paths.app_dir().parent / "data")
+    if local:
+        out.append(Path(local) / "Programs" / "Oxford3000" / "data")
+    for base in (os.environ.get("ProgramFiles", ""),
+                 os.environ.get("ProgramFiles(x86)", "")):
+        if base:
+            out.append(Path(base) / "Oxford3000" / "data")
     return out
 
 
-def _inspect(path: Path) -> Found | None:
-    """Dosyayi SALT OKUNUR acip ice aktarmaya deger mi diye bakar."""
-    if not path.exists() or path.stat().st_size == 0:
+def inspect(path: Path) -> Found | None:
+    """Dosya ice aktarmaya deger mi? Degilse None.
+
+    Saglamlik + "icinde ilerleme var mi" sorusunu backup.has_progress yanitlar;
+    burada yalnizca kullaniciya gosterilecek ozet okunur (tek sorguda).
+    """
+    if not backup.has_progress(path):
         return None
     try:
         conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
         try:
-            if conn.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
-                return None
-            studied = conn.execute(
-                "SELECT COUNT(*) FROM progress WHERE state <> 'pool'"
-            ).fetchone()[0]
-            reviews = conn.execute("SELECT COUNT(*) FROM reviews").fetchone()[0]
-            last = conn.execute("SELECT MAX(ts) FROM reviews").fetchone()[0] or ""
+            studied, reviews, last = conn.execute(
+                "SELECT (SELECT COUNT(*) FROM progress WHERE state <> 'pool'),"
+                "       (SELECT COUNT(*) FROM reviews),"
+                "       (SELECT MAX(ts) FROM reviews)"
+            ).fetchone()
         finally:
             conn.close()
-    except Exception:
+    except sqlite3.Error:
         return None
-    if studied <= 0:
-        return None
-    return Found(path=path, studied=studied, reviews=reviews, last_seen=last)
-
-
-def is_empty(path: Path) -> bool:
-    """Buradaki ilerleme yok ya da hic calisilmamis mi?"""
-    return _inspect(path) is None
+    return Found(path=path, studied=studied, reviews=reviews, last_seen=last or "")
 
 
 def find_elsewhere(current: Path) -> Found | None:
     """Baska bir klasorde dolu bir ilerleme var mi? En cok calisilmis olani.
 
-    Her aday klasorde hem `progress.db` hem de `backups/` icindeki en yeni
-    yedek denenir - kurulum klasorundeki dosya bozuksa yedegi ise yarar.
+    Her klasorde once `progress.db` denenir; yalnizca o ise yaramazsa
+    (yok/bozuk/bos) o klasorun en yeni yedegine bakilir.
     """
     current = current.resolve()
     best: Found | None = None
     seen: set[Path] = set()
-    for folder in _candidate_dirs():
-        files = [folder / "progress.db"]
-        backups = folder / "backups"
-        if backups.is_dir():
-            files += sorted(backups.glob("progress_*.db"), reverse=True)[:1]
-        for file in files:
+    for folder in _data_dirs():
+        for file in (folder / current.name, _newest_backup(folder)):
+            if file is None:
+                continue
             try:
                 resolved = file.resolve()
             except OSError:
@@ -110,20 +106,29 @@ def find_elsewhere(current: Path) -> Found | None:
             if resolved == current or resolved in seen:
                 continue
             seen.add(resolved)
-            found = _inspect(resolved)
-            if found and (best is None or found.reviews > best.reviews):
-                best = found
+            found = inspect(resolved)
+            if found:
+                if best is None or found.reviews > best.reviews:
+                    best = found
+                break          # bu klasor cevabini verdi, yedegine bakma
     return best
 
 
+def _newest_backup(folder: Path) -> Path | None:
+    folder = folder / backup.BACKUP_DIR.name
+    if not folder.is_dir():
+        return None
+    return max(folder.glob(f"{backup.PREFIX}*{backup.SUFFIX}"), default=None)
+
+
 def adopt(found: Found, target: Path) -> bool:
-    """Bulunan ilerlemeyi buraya kopyalar. Kaynak dosyaya DOKUNULMAZ."""
+    """Bulunan ilerlemeyi buraya kopyalar. Kaynak dosyaya DOKUNULMAZ.
+
+    Mevcut (bos) hedef, backup.restore tarafindan `.db.replaced` olarak
+    kenara alinir - yedekten geri yuklemeyle ayni davranis.
+    """
     try:
         target.parent.mkdir(parents=True, exist_ok=True)
-        if target.exists():
-            # Buradaki bos dosya yine de kenara alinsin
-            shutil.copy2(target, target.with_name("progress_devralmadan_once.db"))
-        shutil.copy2(found.path, target)
-        return True
-    except Exception:
+    except OSError:
         return False
+    return backup.restore(found.path, target)

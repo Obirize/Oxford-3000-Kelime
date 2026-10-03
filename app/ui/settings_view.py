@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-from .. import backup, db, tts, update
+from .. import backup, db, tts
 from ..version import RELEASES_URL, VERSION
 from .theme import F_BODY, F_H2, F_SMALL, F_TITLE, px
 
@@ -81,7 +81,7 @@ class SettingsView(ttk.Frame):
         tk.Entry(row, textvariable=self.vars["drill_gaps"], width=24,
                  bg=c["surface_alt"], fg=c["text"], relief="flat",
                  insertbackground=c["text"], justify="right").pack(side="right",
-                                                                   ipady=3)
+                                                            ipady=px(3))
         tk.Label(box, text="Bilemediğin kelime bu aralıklarla tekrar karşına çıkar: "
                            "3 kart sonra, sonra 8, 20, 45… Her doğru bir üst "
                            "basamağa taşır, her yanlış başa döndürür.",
@@ -374,26 +374,16 @@ class SettingsView(ttk.Frame):
 
     # ---------------------------------------------------------- guncelleme
     def check_update_now(self) -> None:
-        """Ayarin ve gunluk sinirin otesinde, elle kontrol."""
-        self.update_lbl.config(text="Kontrol ediliyor…", fg=self.theme.c["text_dim"])
-        update.check_async(self.conn, self, self._update_result, force=True)
+        """Ayarin ve gunluk sinirin otesinde, elle kontrol.
 
-    def _update_result(self, release) -> None:
-        c = self.theme.c
-        if release is None:
-            self.update_lbl.config(
-                text="Kontrol edilemedi — internet bağlantısını kontrol et.",
-                fg=c["warn"])
-            return
-        update.mark_checked(self.conn)
-        if release.is_newer:
-            self.update_lbl.config(
-                text=f"Yeni sürüm var: {release.version} — üstteki şeritten indir.",
-                fg=c["ok"])
-            self.app.update_bar.show(release)
-        else:
-            self.update_lbl.config(text=f"En güncel sürümü kullanıyorsun ({VERSION}).",
-                                   fg=c["ok"])
+        Karar ana pencerenindir; burada yalnizca sonucu yaziya dokuyoruz.
+        """
+        self.update_lbl.config(text="Kontrol ediliyor…", fg=self.theme.c["text_dim"])
+        self.app.check_updates(force=True, on_done=self._show_update_status)
+
+    def _show_update_status(self, status: tuple[str, str]) -> None:
+        text, color = status
+        self.update_lbl.config(text=text, fg=self.theme.c[color])
 
     # ---------------------------------------------------------- otomatik yedek
     def refresh_backups(self) -> None:

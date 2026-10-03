@@ -46,3 +46,50 @@ def cleanup(*paths: str) -> None:
             path.unlink(missing_ok=True)
         except OSError:
             pass
+
+
+# ---------------------------------------------------------------- test ciktisi
+# Dort test aracinda ayni `check`/`failures`/ozet kodu kopyalanmisti; tek yer.
+_failures: list[str] = []
+
+
+def check(label: str, condition: bool, detail: str = "") -> bool:
+    """Bir kontrolu yazdirir ve basarisizsa ozet icin kaydeder."""
+    print(f"  {'✅' if condition else '❌'} {label}" + (f"  ({detail})" if detail else ""))
+    if not condition:
+        _failures.append(label)
+    return bool(condition)
+
+
+def report(success: str) -> int:
+    """Ozet satirini basar; cikis kodu dondurur (0 = hepsi gecti)."""
+    print("\n" + "=" * 60)
+    if _failures:
+        print(f"❌ {len(_failures)} KONTROL BASARISIZ:")
+        for item in _failures:
+            print(f"   - {item}")
+        return 1
+    print(success)
+    return 0
+
+
+def gui_app(db_name: str, view: str = ""):
+    """Test icin guvenli bir veritabani + acilmis AppWindow dondurur.
+
+    Gercek uygulamayla ayni olcekte cizilsin diye DPI farkindaligini da acar;
+    yoksa testler kullanicinin gormedigi bir duzeni dogrular.
+    """
+    from app import dpi                       # gec import: tkinter'i erken yukleme
+    from app.ui.app_window import AppWindow
+
+    dpi.enable()
+    path = test_db(db_name)
+    conn = db.connect(path)
+    db.sync_words(conn)
+    db.set_setting(conn, "audio", 0)          # test makinesi konusmasin
+    app = AppWindow(conn)
+    app.update()
+    if view:
+        app.show(view)
+        app.update()
+    return app, conn, path

@@ -68,13 +68,13 @@ F_STAT    = (FONT, 18, "bold")
 F_INPUT   = (FONT, 18)
 F_MONO    = ("Consolas", 11)
 
-# Ekran olcegi; ilk Theme.apply() cagrisinda gercek degerle guncellenir.
-SCALE = 1.0
-
-
 def px(value: float) -> int:
-    """Piksel olcusunu ekran olceginde buyutur (%125 ekran -> 1.25 kat)."""
-    return int(round(value * SCALE))
+    """Piksel olcusunu ekran olceginde buyutur (%125 ekran -> 1.25 kat).
+
+    Olcegi dpi.scale() verir; ilk pencereden once de dogrudur, yani bu islev
+    nerede cagrilirsa cagrilsin ayni cevabi uretir.
+    """
+    return int(round(value * dpi.scale()))
 
 
 class Theme:
@@ -86,9 +86,7 @@ class Theme:
         return self.c[key]
 
     def apply(self, root: tk.Misc) -> None:
-        global SCALE
         c = self.c
-        SCALE = dpi.factor(root)
         style = ttk.Style(root)
         try:
             style.theme_use("clam")
@@ -168,9 +166,29 @@ class Theme:
         style.configure("TScale", background=c["bg"], troughcolor=c["surface_alt"])
 
 
+def level_segments(data: dict, total: int, c: dict) -> list[tuple[int, str]]:
+    """Bir CEFR seviyesinin cubuk dilimleri: hakim / ogreniliyor / kalan.
+
+    stats.by_level() ciktisini segmented_bar'in bekledigi bicime cevirir;
+    Ana Ekran ve Istatistik ayni cubugu bu sayede ayni koddan cizer.
+    """
+    rest = max(total - data["mastered"] - data["learning"], 0)
+    return [(data["mastered"], c["known"]), (data["learning"], c["learning"]),
+            (rest, c["surface_alt"])]
+
+
 def segmented_bar(canvas: tk.Canvas, segments: list[tuple[int, str]],
-                  width: int, height: int, bg: str, radius: int = 0) -> None:
-    """Coklu renkli ilerleme cubugu cizer. segments = [(deger, renk), ...]"""
+                  width: int | None = None, height: int | None = None,
+                  bg: str = "", radius: int = 0) -> None:
+    """Coklu renkli ilerleme cubugu cizer. segments = [(deger, renk), ...]
+
+    Olculer verilmezse TUVALDEN okunur. Boylece tuvalin yuksekligi
+    olceklenip cizimin sabit kalmasi gibi bir ayrisma olmaz.
+    """
+    if width is None:
+        width = max(canvas.winfo_width(), 1)
+    if height is None:
+        height = max(canvas.winfo_height(), 1)
     canvas.delete("all")
     total = sum(v for v, _ in segments) or 1
     x = 0.0

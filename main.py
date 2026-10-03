@@ -5,24 +5,21 @@ Calistirma:
 """
 
 import sys
+import tkinter.messagebox as mb
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-# Yuksek DPI farkindaligi HER SEYDEN once acilmali - ilk pencere olustuktan
-# sonra Windows bunu yok sayar ve yazilar bulanik kalir. (app/dpi.py)
-from app import dpi  # noqa: E402
-
-dpi.enable()
-
-import tkinter.messagebox as mb  # noqa: E402
-
-from app import backup, db, handoff  # noqa: E402
-from app.ui.app_window import AppWindow  # noqa: E402
+from app import backup, db, dpi, handoff
+from app.ui.app_window import AppWindow
 
 
 def main() -> int:
+    # Yuksek DPI farkindaligi ilk PENCEREDEN once acilmali - sonra Windows
+    # bunu yok sayar ve yazilar bulanik kalir. (app/dpi.py)
+    dpi.enable()
+
     if not db.WORDS_JSON.exists():
         mb.showerror(
             "Kelime listesi bulunamadi",
@@ -43,7 +40,7 @@ def main() -> int:
     # Burada ilerleme yoksa baska bir kopyada (orn. tasinabilir exe'nin yaninda
     # ya da eski kurulum klasorunde) duruyor olabilir. Sorup devralalim -
     # yoksa kullanici "ilerlemem gitti" sanir. (app/handoff.py)
-    if handoff.is_empty(db.DB_PATH):
+    if not backup.has_progress(db.DB_PATH):
         other = handoff.find_elsewhere(db.DB_PATH)
         if other and mb.askyesno(
             "İlerlemeni buraya taşıyalım mı?",

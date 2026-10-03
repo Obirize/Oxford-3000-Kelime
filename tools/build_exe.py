@@ -18,7 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from app.version import VERSION  # noqa: E402
+from app.version import VERSION, as_tuple  # noqa: E402
 
 EXE_NAME = "Oxford3000.exe"
 TARGET = ROOT / EXE_NAME
@@ -53,7 +53,7 @@ VSVersionInfo(
 
 def write_version_info() -> None:
     """exe'nin dosya ozelliklerindeki surumu app/version.py'den uretir."""
-    parts = [int(p) for p in VERSION.split(".")][:4]
+    parts = list(as_tuple(VERSION))[:4]
     parts += [0] * (4 - len(parts))
     VERSION_FILE.write_text(
         VERSION_TEMPLATE.format(tup=tuple(parts), dotted=".".join(map(str, parts))),

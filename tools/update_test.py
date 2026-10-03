@@ -13,25 +13,16 @@ Ag'a CIKMAZ: app.update.fetch sahte bir yanitla degistirilir. Olculen seyler:
 
 import os
 import sys
+import time
 from datetime import date, timedelta
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.stdout.reconfigure(encoding="utf-8")
 
 from app import db, update                 # noqa: E402
-from app.ui.app_window import AppWindow    # noqa: E402
 from app.version import VERSION, is_newer  # noqa: E402
 
-from _guard import test_db                 # noqa: E402
-
-TEST_DB = test_db("data/_update.db")
-failures: list[str] = []
-
-
-def check(label: str, condition: bool, detail: str = "") -> None:
-    print(f"  {'✅' if condition else '❌'} {label}" + (f"  ({detail})" if detail else ""))
-    if not condition:
-        failures.append(label)
+from _guard import check, gui_app, report  # noqa: E402
 
 
 def fake_fetch(version: str | None):
@@ -39,21 +30,27 @@ def fake_fetch(version: str | None):
     def inner():
         if version is None:
             return None
-        return update.Release(version=version, name=f"v{version}",
+        return update.Release(version=version,
                               url="https://example.invalid/releases/latest")
     return inner
 
 
 def run_check(app, version, *, force=False) -> bool:
-    """Kontrolu calistirir; is parcacigi bitene kadar arayuzu dondurur."""
+    """Kontrolu calistirir; sonuc arayuze ulasir ulasmaz doner."""
     update.fetch = fake_fetch(version)
-    started = app.check_updates(force=force)
-    for _ in range(60):          # arka plan + after(0) kuyrugu
-        app.update()
-        app.after(30, lambda: None)
-        app.update_idletasks()
-        import time
-        time.sleep(0.03)
+    done: list[bool] = []
+    original = app.apply_update_result
+    app.apply_update_result = lambda *a, **k: (done.append(True),
+                                               original(*a, **k))[1]
+    try:
+        started = app.check_updates(force=force)
+        for _ in range(200):          # en fazla ~2 sn
+            app.update()
+            if done:
+                break
+            time.sleep(0.01)
+    finally:
+        app.apply_update_result = original
     return started
 
 
@@ -70,11 +67,7 @@ def main() -> int:
     bad = [c for c in cases if is_newer(c[0], c[1]) != c[2]]
     check("surum karsilastirmasi dogru", not bad, str(bad))
 
-    conn = db.connect(TEST_DB)
-    db.sync_words(conn)
-    db.set_setting(conn, "audio", 0)
-    app = AppWindow(conn)
-    app.update()
+    app, conn, test_path = gui_app("data/_update.db")
 
     print("\n1) Yeni surum -> serit cikar")
     run_check(app, "9.9.9")
@@ -129,16 +122,8 @@ def main() -> int:
 
     app.destroy()
     conn.close()
-    os.remove(TEST_DB)
-
-    print("\n" + "=" * 60)
-    if failures:
-        print(f"❌ {len(failures)} KONTROL BASARISIZ:")
-        for f in failures:
-            print(f"   - {f}")
-        return 1
-    print("✅ GUNCELLEME KONTROLU CALISIYOR")
-    return 0
+    os.remove(test_path)
+    return report("✅ GUNCELLEME KONTROLU CALISIYOR")
 
 
 if __name__ == "__main__":

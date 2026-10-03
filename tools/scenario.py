@@ -14,30 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.stdout.reconfigure(encoding="utf-8")
 
 from app import db                       # noqa: E402
-from app.ui.app_window import AppWindow  # noqa: E402
 
-from _guard import test_db, cleanup   # noqa: E402
-
-TEST_DB = test_db("data/_scenario.db")
-failures: list[str] = []
-
-
-def check(label: str, condition: bool, detail: str = "") -> None:
-    mark = "✅" if condition else "❌"
-    print(f"  {mark} {label}" + (f"  ({detail})" if detail else ""))
-    if not condition:
-        failures.append(label)
-
-
-def setup():
-    conn = db.connect(TEST_DB)
-    db.sync_words(conn)
-    db.set_setting(conn, "audio", 0)
-    app = AppWindow(conn)
-    app.update()
-    app.show("quiz")
-    app.update()
-    return app, conn
+from _guard import check, gui_app, report   # noqa: E402
 
 
 # NOT: event_generate("<KeyPress-i>") bu makinede (Turkce klavye duzeni) 'i'
@@ -86,7 +64,7 @@ def can_type(app, quiz) -> bool:
 
 
 def main() -> int:
-    app, conn = setup()
+    app, conn, test_path = gui_app("data/_scenario.db", view="quiz")
     quiz = app._views["quiz"]
 
     print("\n0) Gercek klavye tus olaylari kutucuga ulasiyor mu")
@@ -483,16 +461,9 @@ def main() -> int:
 
     app.destroy()
     conn.close()
-    os.remove(TEST_DB)
+    os.remove(test_path)
 
-    print("\n" + "=" * 60)
-    if failures:
-        print(f"❌ {len(failures)} KONTROL BASARISIZ:")
-        for f in failures:
-            print(f"   - {f}")
-        return 1
-    print("✅ TUM SENARYO KONTROLLERI BASARILI")
-    return 0
+    return report("✅ TUM SENARYO KONTROLLERI BASARILI")
 
 
 if __name__ == "__main__":

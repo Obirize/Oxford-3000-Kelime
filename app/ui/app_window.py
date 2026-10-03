@@ -40,9 +40,10 @@ class StatusBar(ttk.Frame):
             box.pack(side="left", padx=(0, 26))
             dot = ttk.Frame(box, style="Card.TFrame")
             dot.pack(anchor="w")
-            cv = tk.Canvas(dot, width=9, height=9, bg=c["surface"],
-                           highlightthickness=0)
-            cv.create_oval(0, 0, 9, 9, fill=color, outline="")
+            dot_size = px(9)
+            cv = tk.Canvas(dot, width=dot_size, height=dot_size,
+                           bg=c["surface"], highlightthickness=0)
+            cv.create_oval(0, 0, dot_size, dot_size, fill=color, outline="")
             cv.pack(side="left", pady=(0, 2))
             ttk.Label(dot, text=f" {label}", style="CardDim.TLabel").pack(side="left")
             value = ttk.Label(box, text="0", style="Card.TLabel", font=F_STAT)
@@ -85,12 +86,11 @@ class StatusBar(ttk.Frame):
             text=f"{nxt}'e %{ratio*100:.0f}" if nxt else "tüm seviyeler tamamlandı"
         )
 
-        width = max(self.bar.winfo_width(), 1)
         segmented_bar(
             self.bar,
             [(ov.known, c["known"]), (ov.learned, c["learned"]),
              (ov.learning, c["learning"]), (ov.pool, c["surface_alt"])],
-            width, px(10), c["surface_alt"],
+            bg=c["surface_alt"],
         )
         self.progress_txt.config(
             text=f"{ov.mastered} / {ov.total} kelime hakim  ·  %{ov.progress*100:.1f}"
@@ -121,7 +121,7 @@ class UpdateBar(ttk.Frame):
         c = theme.c
 
         pad = ttk.Frame(self, style="Card.TFrame")
-        pad.pack(fill="x", padx=18, pady=10)
+        pad.pack(fill="x", padx=px(18), pady=px(10))
         self.text = ttk.Label(pad, text="", style="Card.TLabel", font=F_H2)
         self.text.pack(side="left")
         ttk.Button(pad, text="Şimdilik gizle", style="Ghost.TButton",
@@ -252,28 +252,35 @@ class AppWindow(tk.Tk):
         self.status.refresh()
 
     # ------------------------------------------------------------ guncelleme
-    def check_updates(self, force: bool = False) -> bool:
-        """Arka planda surum kontrolu baslatir. Baslatildiysa True."""
-        return update.check_async(
-            self.conn, self,
-            lambda release: self._on_update_result(release, force),
-            force=force,
-        )
+    def check_updates(self, force: bool = False, on_done=None) -> bool:
+        """Arka planda surum kontrolu baslatir. Baslatildiysa True.
 
-    def _on_update_result(self, release, force: bool = False) -> None:
-        """Ana is parcacigi: sonucu kaydet, gerekiyorsa seridi goster.
+        Sonucun ne anlama geldigine ve seridin gosterilip gosterilmeyecegine
+        TEK yerde karar verilir (apply_update_result). Ayarlar ekrani sonucu
+        yalnizca yaziya dokmek icin `on_done` verir.
+        """
+        def handle(release) -> None:
+            status = self.apply_update_result(release, force=force)
+            if on_done is not None:
+                on_done(status)
 
-        Kullanici "Şimdilik gizle" dedigi surum bir daha gosterilmez - ama
-        kendisi "Şimdi kontrol et" derse (force) yine gosterilir.
+        return update.check_async(self.conn, self, handle, force=force)
+
+    def apply_update_result(self, release, *, force: bool = False) -> tuple[str, str]:
+        """Sonucu isler ve (mesaj, renk anahtari) dondurur.
+
+        Serit burada gosterilir; kurali `update.should_notify` belirler.
         """
         if release is None:
-            return
+            return ("Kontrol edilemedi — internet bağlantısını kontrol et.", "warn")
         update.mark_checked(self.conn)
-        if not release.is_newer:
-            return
-        skipped = db.get_setting(self.conn, "update_skipped", "")
-        if force or release.version != skipped:
+        if update.should_notify(self.conn, release, force=force):
             self.update_bar.show(release)
+            return (f"Yeni sürüm var: {release.version} — üstteki şeritten indir.",
+                    "ok")
+        if release.is_newer:
+            return (f"Yeni sürüm var: {release.version} (şimdilik gizlendi).", "ok")
+        return (f"En güncel sürümü kullanıyorsun ({VERSION}).", "ok")
 
     def on_close(self) -> None:
         quiz = self._views.get("quiz")

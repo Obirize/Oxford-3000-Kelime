@@ -24,13 +24,22 @@ PER_MONITOR_V2 = -4       # DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
 PROCESS_PER_MONITOR = 2   # PROCESS_PER_MONITOR_DPI_AWARE
 
 
-def enable() -> bool:
-    """DPI farkindaligini acar. Basarili olursa True.
+_scale: float | None = None
 
-    Uc yontem sirayla denenir (Windows 10 1703+ / 8.1 / daha eski).
-    Windows disinda veya hepsi basarisiz olursa sessizce False doner -
-    program yine calisir, yalnizca yazilar eskisi gibi gorunur.
+
+def enable() -> None:
+    """DPI farkindaligini acar.
+
+    Uc yontem sirayla denenir (Windows 10 1703+ / 8.1 / daha eski). Windows
+    disinda veya hepsi basarisiz olursa sessizce gecilir - program yine
+    calisir, yalnizca yazilar eskisi gibi gorunur.
     """
+    global _scale
+    _scale = None          # farkindalik degisti; olcek yeniden okunsun
+    _try_enable()
+
+
+def _try_enable() -> bool:
     if sys.platform != "win32":
         return False
     try:
@@ -52,14 +61,34 @@ def enable() -> bool:
         return False
 
 
-def factor(widget) -> float:
-    """Ekranin 96 DPI'ya gore olcegi (%125 ekran -> 1.25).
+def scale() -> float:
+    """Ekranin 96 DPI'ya gore olcegi (%125 ekran -> 1.25). Bir kez okunur.
 
     Punto cinsinden yazi tipleri Tk tarafindan kendiliginden olceklenir;
     bu carpan PIKSEL cinsinden verilen olculer icindir (pencere boyutu,
     satir sarma genisligi, cubuk yuksekligi...).
+
+    Olcegi isletim sisteminden okur, Tk'dan degil: boylece ilk pencereden
+    ONCE de dogru cevap verir ve bir arayuz nesnesinin kurulum sirasina
+    bagli kalmaz. (Farkindalik acilmamissa Windows 96 bildirir - bu da
+    dogrudur, cunku o durumda Tk gercekten 96 DPI'da cizer.)
     """
+    global _scale
+    if _scale is None:
+        _scale = _read_scale()
+    return _scale
+
+
+def _read_scale() -> float:
+    if sys.platform != "win32":
+        return 1.0
     try:
-        return max(widget.winfo_fpixels("1i") / 96.0, 1.0)
+        user32 = ctypes.windll.user32
+        dc = user32.GetDC(0)
+        try:
+            dpi_x = ctypes.windll.gdi32.GetDeviceCaps(dc, 88)  # LOGPIXELSX
+        finally:
+            user32.ReleaseDC(0, dc)
+        return max(dpi_x / 96.0, 1.0)
     except Exception:
         return 1.0
