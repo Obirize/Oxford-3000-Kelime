@@ -8,7 +8,7 @@ from tkinter import ttk
 
 from .. import db, tts
 from ..stats import LEVELS
-from .theme import F_BODY, F_H2, F_SMALL, F_TITLE
+from .theme import F_BODY, F_H2, F_SMALL, F_TITLE, px
 
 STATE_LABEL = {
     db.KNOWN: "Biliniyor",
@@ -37,7 +37,7 @@ class WordListView(ttk.Frame):
         entry = tk.Entry(bar, textvariable=self.query, font=F_BODY, width=24,
                          bg=c["surface_alt"], fg=c["text"], relief="flat",
                          insertbackground=c["text"])
-        entry.pack(side="left", padx=(6, 18), ipady=5)
+        entry.pack(side="left", padx=(6, 18), ipady=px(5))
         entry.bind("<KeyRelease>", lambda _e: self.reload())
 
         ttk.Label(bar, text="Durum:").pack(side="left")
@@ -104,7 +104,7 @@ class WordListView(ttk.Frame):
                    command=self.speak_selected).pack(anchor="w", pady=(0, 12))
 
         self.d_body = tk.Label(self.panel, text="", bg=c["surface"], fg=c["text"],
-                               font=F_BODY, wraplength=290, justify="left", anchor="nw")
+                               font=F_BODY, wraplength=px(290), justify="left", anchor="nw")
         self.d_body.pack(anchor="w", fill="both", expand=True)
 
         self.reset_btn = ttk.Button(self.panel, text="Bu kelimeyi sıfırla",

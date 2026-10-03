@@ -7,7 +7,7 @@ from tkinter import ttk
 
 from .. import stats
 from ..stats import LEVELS
-from .theme import F_BODY, F_H2, F_SMALL, F_STAT, F_TITLE
+from .theme import F_BODY, F_H2, F_SMALL, F_STAT, F_TITLE, px
 
 
 class DashboardView(ttk.Frame):
@@ -32,7 +32,7 @@ class DashboardView(ttk.Frame):
                                  font=F_BODY)
         self.goal_lbl.pack(anchor="w", pady=(4, 12))
 
-        self.goal_bar = tk.Canvas(pad, height=14, bg=c["surface_alt"],
+        self.goal_bar = tk.Canvas(pad, height=px(14), bg=c["surface_alt"],
                                   highlightthickness=0)
         self.goal_bar.pack(fill="x")
         # Cubuklar ilk cizimde henuz yerlesmemis olabilir (genislik 1 px);

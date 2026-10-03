@@ -8,7 +8,7 @@
 ; Kaldirirken ilerleme SILINMEZ; kullanici isterse klasoru kendisi siler.
 
 #define AppName      "Oxford 3000 Kelime"
-#define AppVersion   "1.0.0"
+#define AppVersion   "1.0.1"
 #define AppPublisher "Obirize"
 #define AppURL       "https://github.com/Obirize/Oxford-3000-Kelime"
 #define AppExe       "Oxford3000.exe"

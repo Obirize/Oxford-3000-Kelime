@@ -10,7 +10,7 @@ from tkinter import ttk
 
 from .. import stats
 from ..stats import LEVELS
-from .theme import F_BODY, F_H2, F_SMALL, F_STAT, F_TITLE
+from .theme import F_BODY, F_H2, F_SMALL, F_STAT, F_TITLE, px
 
 
 class StatsView(ttk.Frame):
@@ -72,7 +72,7 @@ class StatsView(ttk.Frame):
             row.pack(fill="x", pady=3)
             tk.Label(row, text=level, bg=c["surface"], fg=c["text"], font=F_BODY,
                      width=4, anchor="w").pack(side="left")
-            bar = tk.Canvas(row, height=13, bg=c["surface_alt"], highlightthickness=0)
+            bar = tk.Canvas(row, height=px(13), bg=c["surface_alt"], highlightthickness=0)
             bar.pack(side="left", fill="x", expand=True, padx=10)
             bar.bind("<Configure>", lambda _e: self.draw_levels())
             lbl = tk.Label(row, text="", bg=c["surface"], fg=c["text_dim"],

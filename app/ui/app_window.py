@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from .. import backup, db, paths, stats
-from .theme import F_H2, F_SMALL, F_STAT, F_TITLE, Theme, segmented_bar
+from .theme import F_H2, F_SMALL, F_STAT, F_TITLE, Theme, px, segmented_bar
 
 APP_TITLE = "Oxford 3000 · İngilizce Kelime Ezberleme"
 
@@ -55,7 +55,8 @@ class StatusBar(ttk.Frame):
         self.level_sub.pack(anchor="e")
 
         # --- 2. satir: ilerleme cubugu ---
-        self.bar = tk.Canvas(pad, height=10, bg=c["surface_alt"], highlightthickness=0)
+        self.bar = tk.Canvas(pad, height=px(10), bg=c["surface_alt"],
+                             highlightthickness=0)
         self.bar.pack(fill="x", pady=(14, 6))
         self.bar.bind("<Configure>", lambda _e: self.refresh())
 
@@ -86,7 +87,7 @@ class StatusBar(ttk.Frame):
             self.bar,
             [(ov.known, c["known"]), (ov.learned, c["learned"]),
              (ov.learning, c["learning"]), (ov.pool, c["surface_alt"])],
-            width, 10, c["surface_alt"],
+            width, px(10), c["surface_alt"],
         )
         self.progress_txt.config(
             text=f"{ov.mastered} / {ov.total} kelime hakim  ·  %{ov.progress*100:.1f}"
@@ -110,8 +111,9 @@ class AppWindow(tk.Tk):
         self.theme = Theme(db.get_setting(conn, "theme", "dark"))
 
         self.title(APP_TITLE)
-        self.geometry("1120x760")      # tam ekrandan cikilinca donulecek boyut
-        self.minsize(940, 640)
+        # Olculer ekran olceginde buyur; %125'te pencere de %25 buyuk acilir
+        self.geometry(f"{px(1120)}x{px(760)}")   # tam ekrandan cikinca donulecek
+        self.minsize(px(940), px(640))
         self._set_icon()
         self.theme.apply(self)
         self._fullscreen = False

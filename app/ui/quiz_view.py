@@ -20,7 +20,7 @@ from tkinter import ttk
 from .. import db, tts
 from ..engine import Card, Engine, Outcome
 from ..matching import VERDICT_NOT_ACCEPTED, VERDICT_TYPO
-from .theme import F_BODY, F_H2, F_INPUT, F_SMALL, F_TITLE, F_WORD
+from .theme import F_BODY, F_EXAMPLE, F_H2, F_INPUT, F_SMALL, F_TITLE, F_WORD, px
 
 CEFR_HINT = {"A1": "başlangıç", "A2": "temel", "B1": "orta", "B2": "orta-üstü"}
 DIRECTION_LABEL = {db.EN_TR: "EN → TR", db.TR_EN: "TR → EN", db.MIXED: "Karışık"}
@@ -81,29 +81,29 @@ class QuizView(ttk.Frame):
                               justify="center", width=26,
                               disabledbackground=c["surface_alt"],
                               disabledforeground=c["text"])
-        self.entry.pack(ipady=10)
+        self.entry.pack(ipady=px(10))
         # DIKKAT: Enter'i buraya AYRICA baglama. Tk once widget bagini, sonra
         # "all" bagini calistirir; ikisi birden olursa tek basista on_enter iki
         # kez calisir (cevabi gonderir, ardindan sonraki karta bos cevap yazip
         # kutuyu kilitler). Enter yalnizca asagidaki bind_all ile yonetiliyor.
-        self.underline = tk.Frame(inner, bg=c["border"], height=2)
+        self.underline = tk.Frame(inner, bg=c["border"], height=px(2))
         self.underline.pack(fill="x", pady=(0, 10))
 
         # geri bildirim alani
         self.feedback = tk.Label(inner, text="", bg=c["surface"], fg=c["text"],
-                                 font=F_H2, wraplength=680, justify="center")
+                                 font=F_H2, wraplength=px(680), justify="center")
         self.feedback.pack(pady=(6, 2))
         self.detail = tk.Label(inner, text="", bg=c["surface"], fg=c["text_dim"],
-                               font=F_BODY, wraplength=680, justify="center")
+                               font=F_BODY, wraplength=px(680), justify="center")
         self.detail.pack(pady=(0, 4))
         # Dilbilgisi kelimeleri icin Turkce aciklama ("would" = ?). Ornek
         # cumlenin ustunde, vurgulu renkte durur.
         self.note = tk.Label(inner, text="", bg=c["surface"], fg=c["accent"],
-                             font=F_BODY, wraplength=780, justify="center")
+                             font=F_BODY, wraplength=px(780), justify="center")
         self.note.pack(pady=(4, 0))
 
         self.example = tk.Label(inner, text="", bg=c["surface"], fg=c["text_dim"],
-                                font=(F_BODY[0], 10), wraplength=760,
+                                font=F_EXAMPLE, wraplength=px(760),
                                 justify="center")
         self.example.pack()
 

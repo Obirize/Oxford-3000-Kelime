@@ -9,13 +9,15 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 
+from .. import dpi
+
 DARK = {
     "bg":          "#12151c",
     "surface":     "#1a1f2b",
     "surface_alt": "#222939",
     "border":      "#2d3548",
-    "text":        "#e8ecf4",
-    "text_dim":    "#8b95ad",
+    "text":        "#f0f3f9",
+    "text_dim":    "#aab4ca",   # okunurluk: eski #8b95ad kontrasti dusuktu
     "accent":      "#5b8cff",
     "accent_dim":  "#2f4a8a",
     "ok":          "#3ecf8e",
@@ -35,8 +37,8 @@ LIGHT = {
     "surface":     "#ffffff",
     "surface_alt": "#eef1f7",
     "border":      "#d6dce8",
-    "text":        "#141924",
-    "text_dim":    "#5f6b82",
+    "text":        "#0e1420",
+    "text_dim":    "#4a5568",   # okunurluk: eski #5f6b82 kontrasti dusuktu
     "accent":      "#2f6bff",
     "accent_dim":  "#c3d4ff",
     "ok":          "#12a05f",
@@ -51,16 +53,28 @@ LIGHT = {
     "pool":        "#c8cfdd",
 }
 
+# Yazi tipleri PUNTO cinsindendir; yuksek DPI ekranlarda Tk bunlari
+# kendiliginden buyutur (bkz. app/dpi.py). Piksel cinsinden olculer icin
+# asagidaki px() kullanilir.
 FONT = "Segoe UI"
 
 F_WORD    = (FONT, 40, "bold")   # kartin ortasindaki kelime
 F_TITLE   = (FONT, 20, "bold")
 F_H2      = (FONT, 14, "bold")
-F_BODY    = (FONT, 11)
-F_SMALL   = (FONT, 9)
-F_STAT    = (FONT, 17, "bold")
+F_BODY    = (FONT, 12)           # eskiden 11
+F_SMALL   = (FONT, 10)           # eskiden 9 - kucuk ve zor okunuyordu
+F_EXAMPLE = (FONT, 11)           # ornek cumle + Turkcesi (eskiden 10)
+F_STAT    = (FONT, 18, "bold")
 F_INPUT   = (FONT, 18)
-F_MONO    = ("Consolas", 10)
+F_MONO    = ("Consolas", 11)
+
+# Ekran olcegi; ilk Theme.apply() cagrisinda gercek degerle guncellenir.
+SCALE = 1.0
+
+
+def px(value: float) -> int:
+    """Piksel olcusunu ekran olceginde buyutur (%125 ekran -> 1.25 kat)."""
+    return int(round(value * SCALE))
 
 
 class Theme:
@@ -72,7 +86,9 @@ class Theme:
         return self.c[key]
 
     def apply(self, root: tk.Misc) -> None:
+        global SCALE
         c = self.c
+        SCALE = dpi.factor(root)
         style = ttk.Style(root)
         try:
             style.theme_use("clam")
@@ -100,53 +116,53 @@ class Theme:
 
         # Butonlar
         style.configure("TButton", background=c["surface_alt"], foreground=c["text"],
-                        padding=(14, 8), font=F_BODY, relief="flat")
+                        padding=(px(14), px(8)), font=F_BODY, relief="flat")
         style.map("TButton",
                   background=[("active", c["border"]), ("pressed", c["border"])])
 
         style.configure("Accent.TButton", background=c["accent"],
-                        foreground="#ffffff", padding=(18, 10), font=F_H2)
+                        foreground="#ffffff", padding=(px(18), px(10)), font=F_H2)
         style.map("Accent.TButton", background=[("active", c["accent_dim"])])
 
         # "Biliyordum" butonu - goze carpmali
         style.configure("Accept.TButton", background=c["ok_dim"],
-                        foreground=c["ok"], padding=(14, 8), font=F_H2)
+                        foreground=c["ok"], padding=(px(14), px(8)), font=F_H2)
         style.map("Accept.TButton",
                   background=[("active", c["ok"])],
                   foreground=[("active", "#ffffff")])
 
         style.configure("Ghost.TButton", background=c["bg"],
-                        foreground=c["text_dim"], padding=(10, 6), font=F_SMALL)
+                        foreground=c["text_dim"], padding=(px(10), px(6)), font=F_SMALL)
         style.map("Ghost.TButton", background=[("active", c["surface_alt"])])
 
         # Navigasyon sekmeleri
         style.configure("Nav.TButton", background=c["bg"], foreground=c["text_dim"],
-                        padding=(16, 9), font=F_BODY)
+                        padding=(px(16), px(9)), font=F_BODY)
         style.map("Nav.TButton", background=[("active", c["surface_alt"])])
         style.configure("NavOn.TButton", background=c["surface"],
-                        foreground=c["accent"], padding=(16, 9), font=F_H2)
+                        foreground=c["accent"], padding=(px(16), px(9)), font=F_H2)
 
         # Giris kutusu
         style.configure("TEntry", fieldbackground=c["surface_alt"],
                         foreground=c["text"], insertcolor=c["text"],
                         bordercolor=c["border"], lightcolor=c["border"],
-                        darkcolor=c["border"], padding=10)
+                        darkcolor=c["border"], padding=px(10))
         style.configure("Big.TEntry", fieldbackground=c["surface_alt"],
-                        foreground=c["text"], insertcolor=c["accent"], padding=14)
+                        foreground=c["text"], insertcolor=c["accent"], padding=px(14))
 
         # Tablo
         style.configure("Treeview", background=c["surface"], fieldbackground=c["surface"],
-                        foreground=c["text"], rowheight=28, borderwidth=0)
+                        foreground=c["text"], rowheight=px(28), borderwidth=0)
         style.configure("Treeview.Heading", background=c["surface_alt"],
                         foreground=c["text_dim"], font=F_SMALL, relief="flat",
-                        padding=(8, 6))
+                        padding=(px(8), px(6)))
         style.map("Treeview", background=[("selected", c["accent_dim"])],
                   foreground=[("selected", c["text"])])
         style.map("Treeview.Heading", background=[("active", c["border"])])
 
         style.configure("TCombobox", fieldbackground=c["surface_alt"],
                         background=c["surface_alt"], foreground=c["text"],
-                        arrowcolor=c["text_dim"], padding=6)
+                        arrowcolor=c["text_dim"], padding=px(6))
         style.configure("TCheckbutton", background=c["bg"], foreground=c["text"])
         style.map("TCheckbutton", background=[("active", c["bg"])])
         style.configure("TScale", background=c["bg"], troughcolor=c["surface_alt"])

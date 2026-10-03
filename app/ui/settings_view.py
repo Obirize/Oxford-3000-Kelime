@@ -11,7 +11,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from .. import backup, db, tts
-from .theme import F_BODY, F_H2, F_SMALL, F_TITLE
+from .theme import F_BODY, F_H2, F_SMALL, F_TITLE, px
 
 SPELLINGS = [
     ("us", "Amerikan İngilizcesi  (mom, color, center, math)  — önerilen"),
@@ -84,7 +84,7 @@ class SettingsView(ttk.Frame):
                            "3 kart sonra, sonra 8, 20, 45… Her doğru bir üst "
                            "basamağa taşır, her yanlış başa döndürür.",
                  bg=c["surface"], fg=c["text_dim"], font=F_SMALL,
-                 wraplength=620, justify="left").pack(anchor="w", pady=(4, 10))
+                 wraplength=px(620), justify="left").pack(anchor="w", pady=(4, 10))
 
         self._check(box, "teach_on_miss",
                     "Yeni kelimeyi bilemezsem doğru cevabı bir kez yazdır")
@@ -122,14 +122,14 @@ class SettingsView(ttk.Frame):
                            "birbirinin yerine kabul edilir. Çalışma ekranındaki "
                            "“↔ Yön” düğmesiyle de anında çevrilir.",
                  bg=c["surface"], fg=c["text_dim"], font=F_SMALL,
-                 wraplength=620, justify="left").pack(anchor="w", pady=(8, 0))
+                 wraplength=px(620), justify="left").pack(anchor="w", pady=(8, 0))
 
         # ------------------------------------------------------ yazim
         box = self._section(body, "İngilizce yazım biçimi")
         tk.Label(box, text="Oxford 3000 listesi İngiliz yazımını kullanır. "
                            "Kelimeler kartta hangi biçimde gösterilsin?",
                  bg=c["surface"], fg=c["text_dim"], font=F_SMALL,
-                 wraplength=620, justify="left").pack(anchor="w", pady=(0, 8))
+                 wraplength=px(620), justify="left").pack(anchor="w", pady=(0, 8))
         self.vars["spelling"] = tk.StringVar(
             value=db.get_setting(self.conn, "spelling", "us"))
         for value, label in SPELLINGS:
@@ -142,7 +142,7 @@ class SettingsView(ttk.Frame):
         tk.Label(box, text="Öbür biçim kartta not olarak gösterilir; 27 kelimeyi "
                            "etkiler (mum/mom, colour/color, centre/center…).",
                  bg=c["surface"], fg=c["text_dim"], font=F_SMALL,
-                 wraplength=620, justify="left").pack(anchor="w", pady=(8, 0))
+                 wraplength=px(620), justify="left").pack(anchor="w", pady=(8, 0))
 
         # ------------------------------------------------------ cevap toleransi
         box = self._section(body, "Cevap değerlendirme")
@@ -153,7 +153,7 @@ class SettingsView(ttk.Frame):
         tk.Label(box, text="Katı mod her zaman açıktır: yalnızca ana anlam ve yakın "
                            "eş anlamlılar doğru sayılır.",
                  bg=c["surface"], fg=c["text_dim"], font=F_SMALL,
-                 wraplength=620, justify="left").pack(anchor="w", pady=(6, 0))
+                 wraplength=px(620), justify="left").pack(anchor="w", pady=(6, 0))
 
         # ------------------------------------------------ dogru saydiklarim
         box = self._section(body, "Doğru saydıklarım")
@@ -162,7 +162,7 @@ class SettingsView(ttk.Frame):
                            "O cevap o kelime için kalıcı olarak kabul edilir ve "
                            "burada listelenir.",
                  bg=c["surface"], fg=c["text_dim"], font=F_SMALL,
-                 wraplength=620, justify="left").pack(anchor="w", pady=(0, 10))
+                 wraplength=px(620), justify="left").pack(anchor="w", pady=(0, 10))
 
         self.flag_list = tk.Listbox(
             box, height=8, bg=c["surface_alt"], fg=c["text"],
@@ -178,7 +178,7 @@ class SettingsView(ttk.Frame):
         ttk.Button(row, text="Veri setine kalıcı işle",
                    command=self.export_flags).pack(side="left", padx=8)
         self.flag_msg = tk.Label(box, text="", bg=c["surface"], fg=c["ok"],
-                                 font=F_SMALL, wraplength=620, justify="left")
+                                 font=F_SMALL, wraplength=px(620), justify="left")
         self.flag_msg.pack(anchor="w", pady=(8, 0))
 
         # ------------------------------------------------------ ses
@@ -227,7 +227,7 @@ class SettingsView(ttk.Frame):
                            "silinir veya bozulursa açılışta en yeni sağlam "
                            "yedekten kendiliğinden geri yüklenir.",
                  bg=c["surface"], fg=c["text_dim"], font=F_SMALL,
-                 wraplength=620, justify="left").pack(anchor="w", pady=(0, 10))
+                 wraplength=px(620), justify="left").pack(anchor="w", pady=(0, 10))
 
         self.backup_list = tk.Listbox(
             box, height=7, bg=c["surface_alt"], fg=c["text"],

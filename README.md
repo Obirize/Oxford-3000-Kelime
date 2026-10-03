@@ -322,6 +322,19 @@ Not: `biscuit`, `lift`, `queue`, `rubbish`, `lorry` gibi **kelime** farkları
 değiştirilmez — bunlar gerçek İngilizce kelimelerdir, çevirileri doğrudur ve
 çoğunun Amerikan eşdeğeri (`cookie`, `truck`…) zaten listede ayrıca vardır.
 
+## Görünüm ve yazı netliği
+
+Program **yüksek DPI farkındalıdır** (`app/dpi.py`). Windows ekran
+ölçeklendirmen %100'den büyükse (%125, %150…) bu olmadan Windows pencereyi
+96 DPI'da çizdirip görüntüyü büyütür — yazılar bulanık görünür. Farkındalık
+açıkken Tk gerçek çözünürlükte çizer: punto cinsinden tanımlı yazı tipleri
+kendiliğinden büyür (11 punto → %125 ekranda 20 yerine 25 piksel) ve kenarlar
+keskin kalır. Piksel cinsinden ölçüler (pencere boyutu, satır sarma, çubuk
+yükseklikleri) `theme.px()` ile aynı oranda ölçeklenir.
+
+Ayrıca gövde yazısı 11 → 12, küçük yazı 9 → 10 puntoya çıkarıldı ve soluk
+metin rengi daha okunur hale getirildi (koyu temada kontrast 5,5 → 7,7).
+
 ## Telaffuz
 
 Google TTS ile indirilir, `data/audio/` altında önbelleğe alınır; aynı kelime

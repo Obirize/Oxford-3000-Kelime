@@ -5,14 +5,21 @@ Calistirma:
 """
 
 import sys
-import tkinter.messagebox as mb
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
-from app import backup, db
-from app.ui.app_window import AppWindow
+# Yuksek DPI farkindaligi HER SEYDEN once acilmali - ilk pencere olustuktan
+# sonra Windows bunu yok sayar ve yazilar bulanik kalir. (app/dpi.py)
+from app import dpi  # noqa: E402
+
+dpi.enable()
+
+import tkinter.messagebox as mb  # noqa: E402
+
+from app import backup, db  # noqa: E402
+from app.ui.app_window import AppWindow  # noqa: E402
 
 
 def main() -> int:
