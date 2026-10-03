@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import tkinter as tk
+import webbrowser
 from tkinter import ttk
 
-from .. import backup, db, paths, stats
+from .. import backup, db, paths, stats, update
 from .theme import F_H2, F_SMALL, F_STAT, F_TITLE, Theme, px, segmented_bar
+
+from ..version import VERSION
 
 APP_TITLE = "Oxford 3000 · İngilizce Kelime Ezberleme"
 
@@ -104,6 +107,46 @@ class StatusBar(ttk.Frame):
         self.meta.config(text="   ·   ".join(bits))
 
 
+class UpdateBar(ttk.Frame):
+    """Yeni surum cikinca ust tarafta beliren ince serit.
+
+    Hicbir sey indirmez/kurmaz - tek yaptigi surum sayfasini tarayicida acmak.
+    "Şimdilik gizle" o surumu bir daha hatirlatmaz (ayar: update_skipped).
+    """
+
+    def __init__(self, master, theme: Theme, conn):
+        super().__init__(master, style="Card.TFrame")
+        self.theme, self.conn = theme, conn
+        self.release = None
+        c = theme.c
+
+        pad = ttk.Frame(self, style="Card.TFrame")
+        pad.pack(fill="x", padx=18, pady=10)
+        self.text = ttk.Label(pad, text="", style="Card.TLabel", font=F_H2)
+        self.text.pack(side="left")
+        ttk.Button(pad, text="Şimdilik gizle", style="Ghost.TButton",
+                   command=self.skip).pack(side="right")
+        ttk.Button(pad, text="İndirme sayfasını aç", style="Accept.TButton",
+                   command=self.open_page).pack(side="right", padx=(0, 8))
+
+    def show(self, release) -> None:
+        self.release = release
+        self.text.config(
+            text=f"⬆  Yeni sürüm var: {release.version}  "
+                 f"(sende {VERSION})  ·  ilerlemen korunur"
+        )
+        self.pack(fill="x", padx=16, pady=(10, 0), after=self.master.status)
+
+    def open_page(self) -> None:
+        if self.release:
+            webbrowser.open(self.release.url)
+
+    def skip(self) -> None:
+        if self.release:
+            db.set_setting(self.conn, "update_skipped", self.release.version)
+        self.pack_forget()
+
+
 class AppWindow(tk.Tk):
     def __init__(self, conn):
         super().__init__()
@@ -121,6 +164,9 @@ class AppWindow(tk.Tk):
 
         self.status = StatusBar(self, self.theme, conn)
         self.status.pack(fill="x", padx=16, pady=(16, 0))
+
+        # Yeni surum serisi - yalnizca guncelleme bulununca gorunur
+        self.update_bar = UpdateBar(self, self.theme, conn)
 
         nav = ttk.Frame(self)
         nav.pack(fill="x", padx=16, pady=(10, 0))
@@ -154,6 +200,8 @@ class AppWindow(tk.Tk):
             self._views[key] = view
 
         self.show("dashboard")
+        # Acilista bir kez, arka planda: yeni surum var mi? (app/update.py)
+        self.after(1500, self.check_updates)
         self.bind("<Control-q>", lambda _e: self.on_close())
         self.bind("<F11>", self.toggle_fullscreen)
         self.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -202,6 +250,30 @@ class AppWindow(tk.Tk):
 
     def refresh_status(self) -> None:
         self.status.refresh()
+
+    # ------------------------------------------------------------ guncelleme
+    def check_updates(self, force: bool = False) -> bool:
+        """Arka planda surum kontrolu baslatir. Baslatildiysa True."""
+        return update.check_async(
+            self.conn, self,
+            lambda release: self._on_update_result(release, force),
+            force=force,
+        )
+
+    def _on_update_result(self, release, force: bool = False) -> None:
+        """Ana is parcacigi: sonucu kaydet, gerekiyorsa seridi goster.
+
+        Kullanici "Şimdilik gizle" dedigi surum bir daha gosterilmez - ama
+        kendisi "Şimdi kontrol et" derse (force) yine gosterilir.
+        """
+        if release is None:
+            return
+        update.mark_checked(self.conn)
+        if not release.is_newer:
+            return
+        skipped = db.get_setting(self.conn, "update_skipped", "")
+        if force or release.version != skipped:
+            self.update_bar.show(release)
 
     def on_close(self) -> None:
         quiz = self._views.get("quiz")

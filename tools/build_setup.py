@@ -18,6 +18,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from app.version import VERSION  # noqa: E402
+
 ISS = ROOT / "installer" / "Oxford3000.iss"
 
 CANDIDATES = [
@@ -50,15 +54,22 @@ def main() -> int:
 
     iscc = find_iscc()
     (ROOT / "dist").mkdir(exist_ok=True)
-    print(f">>> kurulum derleniyor ({iscc})")
-    subprocess.run([str(iscc), "/Q", str(ISS)], cwd=ROOT, check=True)
+    print(f">>> kurulum derleniyor ({iscc})  surum {VERSION}")
+    # Surum tek kaynaktan gelir: app/version.py
+    subprocess.run([str(iscc), "/Q", f"/DAppVersion={VERSION}", str(ISS)],
+                   cwd=ROOT, check=True)
 
-    out = sorted((ROOT / "dist").glob("Oxford3000-Kurulum-*.exe"))
-    if not out:
+    path = ROOT / "dist" / f"Oxford3000-Kurulum-{VERSION}.exe"
+    if not path.exists():
         raise SystemExit("kurulum dosyasi uretilemedi")
-    path = out[-1]
+    # Tasinabilir exe de yanina konur: Releases'e ikisi birden yuklenir
+    portable = ROOT / "dist" / "Oxford3000.exe"
+    shutil.copy2(ROOT / "Oxford3000.exe", portable)
+
     print(f"\nhazir: {path.relative_to(ROOT)}  ({path.stat().st_size / 1e6:.1f} MB)")
-    print("Bunu GitHub Releases'e yukle; arkadaslarin cift tiklayip kurar.")
+    print(f"       {portable.relative_to(ROOT)}  "
+          f"({portable.stat().st_size / 1e6:.1f} MB)")
+    print(f"\nIkisini de GitHub Releases'e v{VERSION} etiketiyle yukle.")
     return 0
 
 

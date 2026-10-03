@@ -144,6 +144,9 @@ DEFAULT_SETTINGS = {
     "spelling": "us",            # kart uzerinde gosterilen yazim: us | uk
     "direction": "en_tr",        # calisma yonu: en_tr | tr_en | mixed (karisik)
     "theme": "dark",
+    "update_check": "1",         # acilista yeni surum var mi diye bak
+    "update_last_check": "",     # gunde en fazla bir istek icin
+    "update_skipped": "",        # "bu surumu hatirlatma" denen surum
 }
 
 

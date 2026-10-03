@@ -322,6 +322,40 @@ Not: `biscuit`, `lift`, `queue`, `rubbish`, `lorry` gibi **kelime** farkları
 değiştirilmez — bunlar gerçek İngilizce kelimelerdir, çevirileri doğrudur ve
 çoğunun Amerikan eşdeğeri (`cookie`, `truck`…) zaten listede ayrıca vardır.
 
+## Güncelleme
+
+Program **kendini güncellemez**, ama yeni sürümden haberin olur: açılıştan
+birkaç saniye sonra arka planda GitHub'ın açık sürüm listesine tek bir istek
+atılır (`app/update.py`). Daha yeni bir sürüm varsa üstte ince bir şerit çıkar:
+
+- **İndirme sayfasını aç** → tarayıcıda Releases sayfası açılır, kurulumu sen
+  yaparsın. Üstüne kurmak ilerlemeni silmez (`data/progress.db` yerinde kalır).
+- **Şimdilik gizle** → o sürüm bir daha hatırlatılmaz (Ayarlar'dan "Şimdi
+  kontrol et" dersen yine gösterilir).
+
+Ayrıntılar:
+
+- Günde en fazla **bir** istek atılır; Ayarlar → *Sürüm ve güncelleme*'den
+  tamamen kapatılabilir, kapalıyken hiç istek gitmez.
+- İstekte **hiçbir kişisel veri yoktur** — ne ilerleme, ne kimlik, ne
+  tanımlayıcı. Yalnızca bir GET ve `Oxford3000/<sürüm>` tarayıcı kimliği.
+- İnternet yoksa veya GitHub yanıt vermezse sessizce vazgeçilir; o gün
+  "bakıldı" sayılmaz, ertesi açılışta yeniden denenir.
+- Ağ isteği arka planda yapılır, Tk ve SQLite'a yalnızca ana iş parçacığından
+  dokunulur (sonuç bir kuyruğa bırakılır, arayüz onu yoklar).
+
+Sürüm numarasının tek kaynağı **`app/version.py`**. Yeni sürüm çıkarırken
+yalnızca oradaki `VERSION` değiştirilir; `version_info.txt` (exe özellikleri)
+ve kurulum paketinin sürümü derleme sırasında oradan üretilir:
+
+```bash
+py tools/build_setup.py      # exe + dist/Oxford3000-Kurulum-<sürüm>.exe
+py tools/update_test.py      # güncelleme kontrolü testi (ağa çıkmaz)
+```
+
+Sonra `dist/` içindeki iki dosyayı GitHub'da `v<sürüm>` etiketli yeni bir
+Release'e yükle — kullanıcılar şeridi o zaman görür.
+
 ## Görünüm ve yazı netliği
 
 Program **yüksek DPI farkındalıdır** (`app/dpi.py`). Windows ekran

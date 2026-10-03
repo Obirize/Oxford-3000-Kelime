@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import os
 import shutil
+import webbrowser
 import sys
 import tkinter as tk
 from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
-from .. import backup, db, tts
+from .. import backup, db, tts, update
+from ..version import RELEASES_URL, VERSION
 from .theme import F_BODY, F_H2, F_SMALL, F_TITLE, px
 
 SPELLINGS = [
@@ -219,6 +221,30 @@ class SettingsView(ttk.Frame):
         ttk.Button(row, text="Tüm ilerlemeyi sıfırla", style="Ghost.TButton",
                    command=self.reset_all).pack(side="left", padx=8)
 
+        # ------------------------------------------------------ guncelleme
+        box = self._section(body, "Sürüm ve güncelleme")
+        tk.Label(box, text=f"Kurulu sürüm:  {VERSION}", bg=c["surface"],
+                 fg=c["text"], font=F_BODY).pack(anchor="w", pady=(0, 6))
+        self._check(box, "update_check",
+                    "Açılışta yeni sürüm var mı diye bak (günde en fazla bir kez)")
+        tk.Label(box, text="Kontrol GitHub'ın açık sürüm listesine tek bir istek "
+                           "atar; hiçbir kişisel veri veya ilerleme gönderilmez. "
+                           "Program kendini güncellemez — yeni sürüm varsa üstte "
+                           "bir not çıkar, indirip kurmak sana kalır. "
+                           "İlerlemen kurulumda korunur.",
+                 bg=c["surface"], fg=c["text_dim"], font=F_SMALL,
+                 wraplength=px(620), justify="left").pack(anchor="w", pady=(4, 10))
+        row = tk.Frame(box, bg=c["surface"])
+        row.pack(anchor="w")
+        ttk.Button(row, text="Şimdi kontrol et",
+                   command=self.check_update_now).pack(side="left")
+        ttk.Button(row, text="Sürüm sayfasını aç", style="Ghost.TButton",
+                   command=lambda: webbrowser.open(RELEASES_URL)).pack(side="left",
+                                                                      padx=8)
+        self.update_lbl = tk.Label(box, text="", bg=c["surface"],
+                                   fg=c["text_dim"], font=F_SMALL)
+        self.update_lbl.pack(anchor="w", pady=(8, 0))
+
         # ------------------------------------------------------ otomatik yedek
         box = self._section(body, "Otomatik yedekler")
         tk.Label(box, text="Program her açılışta ve her kapanışta ilerlemeni "
@@ -345,6 +371,29 @@ class SettingsView(ttk.Frame):
             fg=self.theme.c["ok"],
         )
         self.refresh_flags()
+
+    # ---------------------------------------------------------- guncelleme
+    def check_update_now(self) -> None:
+        """Ayarin ve gunluk sinirin otesinde, elle kontrol."""
+        self.update_lbl.config(text="Kontrol ediliyor…", fg=self.theme.c["text_dim"])
+        update.check_async(self.conn, self, self._update_result, force=True)
+
+    def _update_result(self, release) -> None:
+        c = self.theme.c
+        if release is None:
+            self.update_lbl.config(
+                text="Kontrol edilemedi — internet bağlantısını kontrol et.",
+                fg=c["warn"])
+            return
+        update.mark_checked(self.conn)
+        if release.is_newer:
+            self.update_lbl.config(
+                text=f"Yeni sürüm var: {release.version} — üstteki şeritten indir.",
+                fg=c["ok"])
+            self.app.update_bar.show(release)
+        else:
+            self.update_lbl.config(text=f"En güncel sürümü kullanıyorsun ({VERSION}).",
+                                   fg=c["ok"])
 
     # ---------------------------------------------------------- otomatik yedek
     def refresh_backups(self) -> None:

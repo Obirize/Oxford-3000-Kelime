@@ -48,5 +48,7 @@ exe = EXE(
     runtime_tmpdir=None,
     console=False,            # konsol penceresi acilmasin
     icon="assets/app.ico",
-    version_file="version_info.txt",
+    # DIKKAT: anahtar "version" - "version_file" PyInstaller 6'da SESSIZCE
+    # yok sayilir ve exe surumsuz cikar.
+    version="version_info.txt",
 )

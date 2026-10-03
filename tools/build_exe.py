@@ -16,8 +16,50 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from app.version import VERSION  # noqa: E402
+
 EXE_NAME = "Oxford3000.exe"
 TARGET = ROOT / EXE_NAME
+VERSION_FILE = ROOT / "version_info.txt"
+
+VERSION_TEMPLATE = """\
+# BU DOSYA URETILIR - elle duzenleme. Kaynak: app/version.py (VERSION)
+# Yeniden uretmek icin: py tools/build_exe.py
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers={tup}, prodvers={tup},
+    mask=0x3f, flags=0x0, OS=0x40004, fileType=0x1, subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo([
+      StringTable("041f04b0", [
+        StringStruct("CompanyName", ""),
+        StringStruct("FileDescription", "Oxford 3000 - Ingilizce Kelime Ezberleme"),
+        StringStruct("FileVersion", "{dotted}"),
+        StringStruct("InternalName", "Oxford3000"),
+        StringStruct("OriginalFilename", "Oxford3000.exe"),
+        StringStruct("ProductName", "Oxford 3000 Kelime Ezberleme"),
+        StringStruct("ProductVersion", "{dotted}"),
+      ])
+    ]),
+    VarFileInfo([VarStruct("Translation", [1055, 1200])])
+  ]
+)
+"""
+
+
+def write_version_info() -> None:
+    """exe'nin dosya ozelliklerindeki surumu app/version.py'den uretir."""
+    parts = [int(p) for p in VERSION.split(".")][:4]
+    parts += [0] * (4 - len(parts))
+    VERSION_FILE.write_text(
+        VERSION_TEMPLATE.format(tup=tuple(parts), dotted=".".join(map(str, parts))),
+        encoding="utf-8",
+    )
+    print(f"version_info.txt -> {VERSION}")
 
 
 def run(cmd: list[str], label: str) -> None:
@@ -52,6 +94,7 @@ def main() -> int:
     if not (ROOT / "data" / "oxford3000.json").exists():
         raise SystemExit("data/oxford3000.json yok. Once: py tools/build_dataset.py")
 
+    write_version_info()
     run([sys.executable, "-X", "utf8", "tools/make_icon.py"], "ikon uretiliyor")
     run([sys.executable, "-m", "PyInstaller", "oxford3000.spec",
          "--noconfirm", "--clean"], "exe derleniyor (birkac dakika)")

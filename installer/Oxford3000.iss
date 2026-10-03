@@ -8,7 +8,11 @@
 ; Kaldirirken ilerleme SILINMEZ; kullanici isterse klasoru kendisi siler.
 
 #define AppName      "Oxford 3000 Kelime"
-#define AppVersion   "1.0.1"
+; Surum tools/build_setup.py tarafindan app/version.py'den gecirilir
+; (ISCC /DAppVersion=x.y.z). Elle derlerken asagidaki deger kullanilir.
+#ifndef AppVersion
+  #define AppVersion "0.0.0"
+#endif
 #define AppPublisher "Obirize"
 #define AppURL       "https://github.com/Obirize/Oxford-3000-Kelime"
 #define AppExe       "Oxford3000.exe"
